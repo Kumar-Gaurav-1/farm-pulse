@@ -1,0 +1,28 @@
+{
+  "placeholderImages": [
+    {
+      "id": "field-satellite",
+      "description": "Satellite view of a green farmland field",
+      "imageUrl": "https://picsum.photos/seed/agri1/1200/800",
+      "imageHint": "farmland field"
+    },
+    {
+      "id": "crop-detail",
+      "description": "Close up of healthy crop leaves",
+      "imageUrl": "https://picsum.photos/seed/agri2/600/400",
+      "imageHint": "healthy crop"
+    },
+    {
+      "id": "farm-worker",
+      "description": "A farmer using a tablet in a sunny field",
+      "imageUrl": "https://picsum.photos/seed/agri3/800/600",
+      "imageHint": "farmer technology"
+    },
+    {
+      "id": "market-price-chart",
+      "description": "Commodity market price visualization background",
+      "imageUrl": "https://picsum.photos/seed/agri4/1000/500",
+      "imageHint": "market data"
+    }
+  ]
+}
