@@ -11,6 +11,16 @@ Precision agriculture intelligence. One dashboard for your entire operation — 
 
 ---
 
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="Dashboard" width="720">
+</p>
+
+<p align="center">
+  <img src="screenshots/field-health.png" alt="Field Health" width="720">
+</p>
+
+---
+
 ## Capabilities
 
 **Field Intelligence** — Spectral vigor analysis across every sector. Drill into any field for real-time diagnostics.
