@@ -71,7 +71,7 @@ export default function Dashboard() {
         }
       }, 0);
     } catch (e) {
-      console.error("Audio Briefing Error:", e);
+      console.error("Audio Briefing Error: An unexpected error occurred while generating the audio briefing.");
     } finally {
       setIsBriefing(false);
     }
