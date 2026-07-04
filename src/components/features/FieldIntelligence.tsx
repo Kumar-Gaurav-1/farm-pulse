@@ -69,7 +69,7 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
         setNdvi(n);
         setBenchmark(b);
       } catch (err) {
-        console.error("Context Data Fetch Error:", err);
+        console.error("Context Data Fetch Error: An error occurred while fetching data.");
       } finally {
         setIsLoading(false);
       }
