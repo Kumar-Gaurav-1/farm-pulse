@@ -48,7 +48,7 @@ export function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
       });
       setDiagnosis(result);
     } catch (err: any) {
-      console.error("Diagnosis error:", err);
+      console.error("An error occurred during diagnosis.");
       if (err.message?.includes('429') || err.message?.includes('quota')) {
         setError("Intelligence Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
