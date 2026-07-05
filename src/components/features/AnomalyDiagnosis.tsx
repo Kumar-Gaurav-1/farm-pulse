@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { fieldAnomalyAnalysisRecommendation, type FieldAnomalyAnalysisRecommendationOutput } from '@/ai/flows/field-anomaly-analysis-recommendation';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 interface AnomalyDiagnosisProps {
