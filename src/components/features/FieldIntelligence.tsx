@@ -122,9 +122,36 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
         </div>
       </div>
 
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Spatial Intelligence View */}
         <div className="lg:col-span-8 space-y-12">
+          <SpatialIntelligenceMap fieldId={fieldId} ndvi={ndvi} />
+          <TemporalVigorAnalysis chartData={chartData} />
+        </div>
+
+        {/* Tactical Command & History Sidebar */}
+        <div className="lg:col-span-4 space-y-12">
+          <StrategicInsights
+            benchmark={benchmark}
+            isBoosting={isBoosting}
+            onNitrogenBoost={handleNitrogenBoost}
+          />
+          <OperationalTimeline />
+          <AtmosphericPrediction />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface SpatialIntelligenceMapProps {
+  fieldId: string;
+  ndvi: any;
+}
+
+function SpatialIntelligenceMap({ fieldId, ndvi }: SpatialIntelligenceMapProps) {
+  return (
           <Card className="border-none glass-card rounded-[4rem] overflow-hidden relative group h-[700px] shadow-2xl">
             {/* Spectral Map Base */}
             <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/agrihighres/1600/1000')] bg-cover bg-center transition-transform duration-[8000ms] group-hover:scale-105">
@@ -189,8 +216,16 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
               ))}
             </div>
           </Card>
+  );
+}
 
-          {/* Detailed Analytics Chart */}
+
+interface TemporalVigorAnalysisProps {
+  chartData: any[];
+}
+
+function TemporalVigorAnalysis({ chartData }: TemporalVigorAnalysisProps) {
+  return (
           <Card className="border-none glass-card rounded-[3.5rem] p-12 shadow-xl">
             <div className="flex items-center justify-between mb-16">
                <div className="flex items-center gap-6">
@@ -223,11 +258,18 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
               </ResponsiveContainer>
             </div>
           </Card>
-        </div>
+  );
+}
 
-        {/* Tactical Command & History Sidebar */}
-        <div className="lg:col-span-4 space-y-12">
-          {/* Strategic Insights */}
+
+interface StrategicInsightsProps {
+  benchmark: any;
+  isBoosting: boolean;
+  onNitrogenBoost: () => void;
+}
+
+function StrategicInsights({ benchmark, isBoosting, onNitrogenBoost }: StrategicInsightsProps) {
+  return (
           <Card className="border-none glass-card rounded-[3.5rem] p-12 shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-12 opacity-[0.03] text-primary group-hover:scale-125 transition-transform duration-[4000ms]">
               <Sparkles className="w-64 h-64" />
@@ -260,7 +302,7 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
 
             <div className="mt-16 pt-12 border-t border-border/40 relative z-10">
                <Button 
-                onClick={handleNitrogenBoost}
+                onClick={onNitrogenBoost}
                 disabled={isBoosting}
                 className="apple-btn w-full bg-primary text-white rounded-full h-24 font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl"
                >
@@ -268,8 +310,12 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
                </Button>
             </div>
           </Card>
+  );
+}
 
-          {/* Operational Timeline */}
+
+function OperationalTimeline() {
+  return (
           <Card className="border-none glass-card rounded-[3.5rem] p-12 shadow-xl">
             <div className="flex items-center gap-6 mb-12">
                <div className="p-4 rounded-xl bg-muted/50 text-muted-foreground">
@@ -299,8 +345,12 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
               Full Archive <ChevronRight className="w-5 h-5" />
             </Button>
           </Card>
+  );
+}
 
-          {/* Tactical Weather Widget */}
+
+function AtmosphericPrediction() {
+  return (
           <Card className="border-none bg-blue-500 text-white rounded-[3.5rem] p-12 shadow-2xl relative overflow-hidden group">
             <div className="absolute -right-8 -bottom-8 text-white opacity-[0.1] rotate-12 group-hover:scale-150 transition-transform duration-[5000ms]">
                <Wind className="w-64 h-64" />
@@ -317,8 +367,5 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
               "Wind patterns stabilized for evening application. Humidity threshold within optimal bounds for systemic absorption."
             </p>
           </Card>
-        </div>
-      </div>
-    </div>
   );
 }
