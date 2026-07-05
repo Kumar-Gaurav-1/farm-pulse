@@ -26,16 +26,29 @@ const chartData = [
   { name: 'Jun', footprint: 30, capture: 65 },
 ];
 
+// ⚡ Bolt: Cache static API promises to avoid unnecessary re-fetching across component lifecycles
+let carbonMetricsPromiseCache: Promise<any> | null = null;
+let complianceStandardsPromiseCache: Promise<any> | null = null;
+
 export function SustainabilityDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [compliance, setCompliance] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      // Initialize caches if not present
+      if (!carbonMetricsPromiseCache) {
+        carbonMetricsPromiseCache = ApiServices.getCarbonMetrics('VVE-2024');
+      }
+      if (!complianceStandardsPromiseCache) {
+        complianceStandardsPromiseCache = ApiServices.getComplianceStandards('certified-grains');
+      }
+
       const [m, c] = await Promise.all([
-        ApiServices.getCarbonMetrics('VVE-2024'),
-        ApiServices.getComplianceStandards('certified-grains')
+        carbonMetricsPromiseCache,
+        complianceStandardsPromiseCache
       ]);
+
       setMetrics(m);
       setCompliance(c);
     };
