@@ -24,6 +24,11 @@ import { Button } from '@/components/ui/button';
 import { marketTrendSynthesis, type MarketTrendSynthesisOutput } from '@/ai/flows/market-trend-synthesis-flow';
 import { ApiServices, type CurrencyImpact, type MarketCalendarEvent } from '@/lib/api-services';
 
+// Cache for API responses to improve performance and reduce network calls
+let fxCache: { data: CurrencyImpact; timestamp: number } | null = null;
+let deadlinesCache: { data: MarketCalendarEvent[]; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export function MarketDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,14 +40,33 @@ export function MarketDashboard() {
     setLoading(true);
     setError(null);
     try {
+      // Use cached values if they exist and are within the TTL
+      const fetchFx = async () => {
+        if (fxCache && (Date.now() - fxCache.timestamp < CACHE_TTL)) {
+          return fxCache.data;
+        }
+        const data = await ApiServices.getExchangeRates('USD', 'EUR');
+        fxCache = { data, timestamp: Date.now() };
+        return data;
+      };
+
+      const fetchDeadlines = async () => {
+        if (deadlinesCache && (Date.now() - deadlinesCache.timestamp < CACHE_TTL)) {
+          return deadlinesCache.data;
+        }
+        const data = await ApiServices.getDeadlines();
+        deadlinesCache = { data, timestamp: Date.now() };
+        return data;
+      };
+
       const [synth, fx, cal] = await Promise.all([
         marketTrendSynthesis({
           cropType: "Wheat & Soybeans",
           location: "United States (Midwest)",
           recentMarketNews: "Exports to Europe increasing due to regional shortage. Logistics costs stabilizing."
         }),
-        ApiServices.getExchangeRates('USD', 'EUR'),
-        ApiServices.getDeadlines()
+        fetchFx(),
+        fetchDeadlines()
       ]);
       setMarketData(synth);
       setCurrency(fx);
