@@ -8,7 +8,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { Writer } from 'wav';
 import { googleAI } from '@genkit-ai/google-genai';
 
 const AudioBriefingInputSchema = z.string().describe('The text summary of the farm status to convert to audio.');
@@ -19,31 +18,38 @@ const AudioBriefingOutputSchema = z.object({
 });
 export type AudioBriefingOutput = z.infer<typeof AudioBriefingOutputSchema>;
 
+/**
+ * Optimizes WAV conversion by directly generating the WAV header and
+ * concatenating it with PCM data. This avoids event loop stalling from
+ * stream piping of potentially large audio chunks.
+ */
 async function toWav(
   pcmData: Buffer,
   channels = 1,
   rate = 24000,
   sampleWidth = 2
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const writer = new Writer({
-      channels,
-      sampleRate: rate,
-      bitDepth: sampleWidth * 8,
-    });
+  const dataSize = pcmData.length;
+  const header = Buffer.alloc(44);
 
-    let bufs = [] as any[];
-    writer.on('error', reject);
-    writer.on('data', function (d) {
-      bufs.push(d);
-    });
-    writer.on('end', function () {
-      resolve(Buffer.concat(bufs).toString('base64'));
-    });
+  header.write('RIFF', 0);
+  header.writeUInt32LE(dataSize + 36, 4);
+  header.write('WAVE', 8);
 
-    writer.write(pcmData);
-    writer.end();
-  });
+  header.write('fmt ', 12);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(channels, 22);
+  header.writeUInt32LE(rate, 24);
+  header.writeUInt32LE(rate * channels * sampleWidth, 28);
+  header.writeUInt16LE(channels * sampleWidth, 32);
+  header.writeUInt16LE(sampleWidth * 8, 34);
+
+  header.write('data', 36);
+  header.writeUInt32LE(dataSize, 40);
+
+  const wavBuffer = Buffer.concat([header, pcmData]);
+  return wavBuffer.toString('base64');
 }
 
 export async function generateAudioBriefing(input: AudioBriefingInput): Promise<AudioBriefingOutput> {
