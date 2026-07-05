@@ -82,6 +82,12 @@ export function AlertCenter() {
     setNotifications(notifications.filter(n => n.id !== id));
   };
 
+  // Bolt: Optimize category counts using a single .reduce() pass over notifications to avoid O(M*N) iterations
+  const categoryCounts = notifications.reduce((acc, n) => {
+    acc[n.type] = (acc[n.type] || 0) + 1;
+    return acc;
+  }, { weather: 0, field: 0, market: 0, system: 0 } as Record<string, number>);
+
   return (
     <div className="page-transition space-y-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-6">
@@ -192,10 +198,10 @@ export function AlertCenter() {
             </CardHeader>
             <CardContent className="p-0 space-y-6">
               {[
-                { label: 'Weather', count: notifications.filter(n => n.type === 'weather').length, color: 'bg-blue-500' },
-                { label: 'Field Health', count: notifications.filter(n => n.type === 'field').length, color: 'bg-red-500' },
-                { label: 'Market Signals', count: notifications.filter(n => n.type === 'market').length, color: 'bg-orange-500' },
-                { label: 'System Logs', count: notifications.filter(n => n.type === 'system').length, color: 'bg-primary' },
+                { label: 'Weather', count: categoryCounts.weather, color: 'bg-blue-500' },
+                { label: 'Field Health', count: categoryCounts.field, color: 'bg-red-500' },
+                { label: 'Market Signals', count: categoryCounts.market, color: 'bg-orange-500' },
+                { label: 'System Logs', count: categoryCounts.system, color: 'bg-primary' },
               ].map((cat, i) => (
                 <div key={i} className="flex items-center justify-between p-6 bg-muted/20 rounded-[1.75rem] hover:bg-white transition-all cursor-pointer group">
                   <div className="flex items-center gap-4">
