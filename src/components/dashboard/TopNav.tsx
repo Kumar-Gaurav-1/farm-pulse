@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Badge } from '@/components/ui/badge';
 import { PROPERTIES, type PropertyContext } from '@/lib/locations';
 
 interface TopNavProps {
