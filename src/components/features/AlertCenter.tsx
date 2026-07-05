@@ -75,7 +75,8 @@ export function AlertCenter() {
     : notifications.filter(n => !n.read);
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    // ⚡ Bolt: skip re-allocating objects that are already read
+    setNotifications(notifications.map(n => n.read ? n : { ...n, read: true }));
   };
 
   const deleteNotification = (id: string) => {
