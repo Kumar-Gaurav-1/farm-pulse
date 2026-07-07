@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Bell, 
   CloudRain, 
@@ -70,9 +70,21 @@ export function AlertCenter() {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  const filteredNotifications = filter === 'all' 
-    ? notifications 
-    : notifications.filter(n => !n.read);
+  // Bolt Optimization: Memoize the filtered array to avoid O(n) re-calculation on every re-render
+  // unless notifications or filter state changes.
+  const filteredNotifications = useMemo(() => {
+    return filter === 'all'
+      ? notifications
+      : notifications.filter(n => !n.read);
+  }, [filter, notifications]);
+
+  // Bolt Optimization: Memoize category counts to prevent repeated .filter() calls on the notifications array on every render.
+  const alertCategories = useMemo(() => [
+    { label: 'Weather', count: notifications.filter(n => n.type === 'weather').length, color: 'bg-blue-500' },
+    { label: 'Field Health', count: notifications.filter(n => n.type === 'field').length, color: 'bg-red-500' },
+    { label: 'Market Signals', count: notifications.filter(n => n.type === 'market').length, color: 'bg-orange-500' },
+    { label: 'System Logs', count: notifications.filter(n => n.type === 'system').length, color: 'bg-primary' },
+  ], [notifications]);
 
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
@@ -191,12 +203,7 @@ export function AlertCenter() {
               <CardTitle className="text-2xl font-headline font-bold italic tracking-tight">Alert Categories</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-6">
-              {[
-                { label: 'Weather', count: notifications.filter(n => n.type === 'weather').length, color: 'bg-blue-500' },
-                { label: 'Field Health', count: notifications.filter(n => n.type === 'field').length, color: 'bg-red-500' },
-                { label: 'Market Signals', count: notifications.filter(n => n.type === 'market').length, color: 'bg-orange-500' },
-                { label: 'System Logs', count: notifications.filter(n => n.type === 'system').length, color: 'bg-primary' },
-              ].map((cat, i) => (
+              {alertCategories.map((cat, i) => (
                 <div key={i} className="flex items-center justify-between p-6 bg-muted/20 rounded-[1.75rem] hover:bg-white transition-all cursor-pointer group">
                   <div className="flex items-center gap-4">
                     <div className={cn("w-2 h-2 rounded-full", cat.color)} />
