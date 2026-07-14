@@ -1,0 +1,3 @@
+## 2024-07-14 - Global Layout State and Unnecessary Re-renders
+**Learning:** The application's dashboard architecture relies heavily on global layout state in `page.tsx` (like `isBriefing`, `formattedDate`). Because heavy data-fetching child components (`MarketDashboard`, `AdvisoryDashboard`, etc.) are rendered directly, any unrelated layout state change triggers expensive re-renders in these components, causing them to re-render without need.
+**Action:** Always wrap heavy data-fetching child components in `React.memo` when they do not depend on the specific parent state, especially in dashboard architectures with global layout state.
