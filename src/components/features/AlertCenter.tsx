@@ -66,7 +66,8 @@ const initialNotifications: Notification[] = [
   },
 ];
 
-export function AlertCenter() {
+// ⚡ Bolt: Wrapped AlertCenter in React.memo to prevent unnecessary re-renders when parent layout state (like activeTab) changes.
+export const AlertCenter = React.memo(function AlertCenter() {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
@@ -224,4 +225,4 @@ export function AlertCenter() {
       </div>
     </div>
   );
-}
+});
