@@ -27,6 +27,23 @@ export function AdvisoryDashboard() {
     setLoading(true);
     setError(null);
     try {
+      const CACHE_KEY = 'advisory_cache';
+      const CACHE_EXPIRATION_MS = 3 * 60 * 60 * 1000; // 3 hours
+
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        try {
+          const parsedCache = JSON.parse(cached);
+          if (Date.now() - parsedCache.timestamp < CACHE_EXPIRATION_MS) {
+            setAdvisoryData(parsedCache.data);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.warn("Failed to parse cached advisory data", e);
+        }
+      }
+
       const result = await contextualCropWeatherAdvisory({
         location: "Central Valley, Kansas",
         cropType: "Corn (Yellow Dent)",
@@ -42,6 +59,15 @@ export function AdvisoryDashboard() {
         diseaseHistory: ["Gray Leaf Spot", "Common Rust"],
       });
       setAdvisoryData(result);
+
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data: result,
+        }));
+      } catch (e) {
+        console.warn("Failed to cache advisory data", e);
+      }
     } catch (err: any) {
       console.error("Error fetching advisory:", err);
       if (err.message?.includes('429') || err.message?.includes('quota')) {
