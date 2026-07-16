@@ -32,6 +32,24 @@ export function MarketDashboard() {
   const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>([]);
 
   const fetchMarketIntelligence = async () => {
+    const CACHE_KEY = 'market_intelligence_cache';
+    const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp < CACHE_TTL) {
+          setMarketData(parsed.synth);
+          setCurrency(parsed.fx);
+          setDeadlines(parsed.cal);
+          return;
+        }
+      } catch (e) {
+        // Ignore cache parsing errors and proceed to fetch
+      }
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -44,6 +62,18 @@ export function MarketDashboard() {
         ApiServices.getExchangeRates('USD', 'EUR'),
         ApiServices.getDeadlines()
       ]);
+
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          synth,
+          fx,
+          cal
+        }));
+      } catch (e) {
+        // Ignore storage errors (e.g. quota exceeded)
+      }
+
       setMarketData(synth);
       setCurrency(fx);
       setDeadlines(cal);
