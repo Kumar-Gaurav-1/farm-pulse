@@ -37,6 +37,34 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 
+// Global cache for FieldIntelligence API calls to prevent redundant network requests
+// when navigating between fields or views.
+const apiCache = new Map<string, Promise<any>>();
+
+const getCachedNdvi = (fieldId: string) => {
+  const cacheKey = `ndvi-${fieldId}`;
+  if (!apiCache.has(cacheKey)) {
+    const promise = ApiServices.getFieldNDVI(fieldId).catch(err => {
+      apiCache.delete(cacheKey);
+      throw err;
+    });
+    apiCache.set(cacheKey, promise);
+  }
+  return apiCache.get(cacheKey)!;
+};
+
+const getCachedBenchmark = (crop: string, region: string) => {
+  const cacheKey = `benchmark-${crop}-${region}`;
+  if (!apiCache.has(cacheKey)) {
+    const promise = ApiServices.getYieldBenchmarks(crop, region).catch(err => {
+      apiCache.delete(cacheKey);
+      throw err;
+    });
+    apiCache.set(cacheKey, promise);
+  }
+  return apiCache.get(cacheKey)!;
+};
+
 const chartData = [
   { name: '06:00', ndvi: 0.78, temp: 22 },
   { name: '09:00', ndvi: 0.80, temp: 25 },
@@ -62,9 +90,10 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        // Use cached promises to prevent redundant API calls for the same parameters
         const [n, b] = await Promise.all([
-          ApiServices.getFieldNDVI(fieldId),
-          ApiServices.getYieldBenchmarks('Corn', 'Kansas')
+          getCachedNdvi(fieldId),
+          getCachedBenchmark('Corn', 'Kansas')
         ]);
         setNdvi(n);
         setBenchmark(b);
