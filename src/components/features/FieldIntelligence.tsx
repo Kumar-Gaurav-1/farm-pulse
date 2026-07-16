@@ -51,7 +51,8 @@ interface FieldIntelligenceProps {
   onBack: () => void;
 }
 
-export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
+// ⚡ Bolt: Wrapped FieldIntelligence in React.memo to prevent unnecessary re-renders when parent layout state (like activeTab) changes.
+export const FieldIntelligence = React.memo(function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
   const [activeView, setActiveView] = useState<'status' | 'analysis' | 'history'>('status');
   const [ndvi, setNdvi] = useState<any>(null);
   const [benchmark, setBenchmark] = useState<any>(null);
@@ -321,4 +322,4 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
       </div>
     </div>
   );
-}
+});

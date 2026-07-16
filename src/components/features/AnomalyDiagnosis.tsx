@@ -28,7 +28,8 @@ interface AnomalyDiagnosisProps {
   onBack: () => void;
 }
 
-export function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
+// ⚡ Bolt: Wrapped AnomalyDiagnosis in React.memo to prevent unnecessary re-renders when parent layout state (like activeTab) changes.
+export const AnomalyDiagnosis = React.memo(function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
   const [loading, setLoading] = useState(false);
   const [description, setDescription] = useState('');
   const [diagnosis, setDiagnosis] = useState<FieldAnomalyAnalysisRecommendationOutput | null>(null);
@@ -210,4 +211,4 @@ export function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
       </div>
     </div>
   );
-}
+});
