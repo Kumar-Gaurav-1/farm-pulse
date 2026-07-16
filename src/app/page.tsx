@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import { TopNav } from '@/components/dashboard/TopNav';
@@ -46,6 +46,11 @@ export default function Dashboard() {
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const [currentLocation, setCurrentLocation] = useState<PropertyContext>(PROPERTIES[0]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Use useMemo to avoid recalculating string formatting on every render
+  const formattedTabTitle = useMemo(() => {
+    return activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }, [activeTab]);
 
   useEffect(() => {
     const options: Intl.DateTimeFormatOptions = { 
@@ -312,7 +317,7 @@ export default function Dashboard() {
                    </div>
                    <h1 className="text-7xl md:text-8xl font-headline font-bold tracking-tighter text-foreground leading-[0.85]">
                     {isDiagnosing ? 'Diagnosis' : selectedField ? selectedField : activeTab === 'overview' ? 'The Pulse' : 
-                     activeTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                     formattedTabTitle}
                    </h1>
                    <div className="flex items-center gap-6 text-muted-foreground font-bold text-sm tracking-tight">
                       <span className="text-primary italic">{currentLocation.name}</span>
