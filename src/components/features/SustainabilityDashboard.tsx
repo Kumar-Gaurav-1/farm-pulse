@@ -26,16 +26,30 @@ const chartData = [
   { name: 'Jun', footprint: 30, capture: 65 },
 ];
 
+// ⚡ Bolt Optimization: Module-level cache to avoid redundant API requests
+// on component remounts. Since this data changes infrequently, caching
+// provides a significant performance lift by skipping the network roundtrips.
+let sustainabilityDataCache: { metrics: any; compliance: any } | null = null;
+
 export function SustainabilityDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [compliance, setCompliance] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (sustainabilityDataCache) {
+        setMetrics(sustainabilityDataCache.metrics);
+        setCompliance(sustainabilityDataCache.compliance);
+        return;
+      }
+
       const [m, c] = await Promise.all([
         ApiServices.getCarbonMetrics('VVE-2024'),
         ApiServices.getComplianceStandards('certified-grains')
       ]);
+
+      sustainabilityDataCache = { metrics: m, compliance: c };
+
       setMetrics(m);
       setCompliance(c);
     };
