@@ -1,0 +1,3 @@
+## 2024-05-18 - Memoizing Heavy Components Dependent on Layout State
+**Learning:** The dashboard architecture handles large amounts of global layout state in `page.tsx` (like `formattedDate`, `isBriefing`, `activeTab`), which causes significant cascading re-renders on every child component since they weren't wrapped in `React.memo()`. Inline functions were also breaking memoization by constantly creating new references.
+**Action:** When adding expensive nested components (like `FieldHealth` and `AdvisoryDashboard`) to the main layout, always wrap them in `React.memo()` and use `useCallback()` in the parent for any function props passed down, to maintain stable references and avoid unnecessary heavy DOM updates.
