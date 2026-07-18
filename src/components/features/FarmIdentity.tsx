@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
-export function FarmIdentity() {
+export const FarmIdentity = React.memo(function FarmIdentity() {
   const [notifications, setNotifications] = useState({
     email: true,
     sms: false,
@@ -155,4 +155,4 @@ export function FarmIdentity() {
       </div>
     </div>
   );
-}
+});

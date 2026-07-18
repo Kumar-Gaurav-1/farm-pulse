@@ -66,7 +66,7 @@ const initialNotifications: Notification[] = [
   },
 ];
 
-export function AlertCenter() {
+export const AlertCenter = React.memo(function AlertCenter() {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
@@ -224,4 +224,4 @@ export function AlertCenter() {
       </div>
     </div>
   );
-}
+});
