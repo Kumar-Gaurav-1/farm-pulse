@@ -26,7 +26,7 @@ const chartData = [
   { name: 'Jun', footprint: 30, capture: 65 },
 ];
 
-export function SustainabilityDashboard() {
+export const SustainabilityDashboard = React.memo(function SustainabilityDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [compliance, setCompliance] = useState<any>(null);
 
@@ -147,4 +147,4 @@ export function SustainabilityDashboard() {
       </div>
     </div>
   );
-}
+});

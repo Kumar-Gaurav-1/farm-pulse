@@ -44,6 +44,24 @@ export default function Dashboard() {
   const [formattedDate, setFormattedDate] = useState<string>("");
   const [isBriefing, setIsBriefing] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
+
+  const handleTabChange = React.useCallback((id: string) => {
+    setActiveTab(id);
+    setSelectedField(null);
+    setIsDiagnosing(null);
+  }, []);
+
+  const handleDiagnose = React.useCallback((id: string) => {
+    setIsDiagnosing(id);
+  }, []);
+
+  const handleBackFromDiagnosis = React.useCallback(() => {
+    setIsDiagnosing(null);
+  }, []);
+
+  const handleBackFromField = React.useCallback(() => {
+    setSelectedField(null);
+  }, []);
   const [currentLocation, setCurrentLocation] = useState<PropertyContext>(PROPERTIES[0]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -79,11 +97,11 @@ export default function Dashboard() {
 
   const renderContent = () => {
     if (isDiagnosing) {
-      return <AnomalyDiagnosis fieldId={isDiagnosing} onBack={() => setIsDiagnosing(null)} />;
+      return <AnomalyDiagnosis fieldId={isDiagnosing} onBack={handleBackFromDiagnosis} />;
     }
 
     if (selectedField) {
-      return <FieldIntelligence fieldId={selectedField} onBack={() => setSelectedField(null)} />;
+      return <FieldIntelligence fieldId={selectedField} onBack={handleBackFromField} />;
     }
 
     switch (activeTab) {
@@ -265,7 +283,7 @@ export default function Dashboard() {
       case 'weather':
         return <WeatherIntelligence />;
       case 'field-health':
-        return <FieldHealth onDiagnose={(id) => setIsDiagnosing(id)} />;
+        return <FieldHealth onDiagnose={handleDiagnose} />;
       case 'advisory':
         return <AdvisoryDashboard />;
       case 'market':
@@ -293,7 +311,7 @@ export default function Dashboard() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background font-body selection:bg-primary/10">
-        <SidebarNav activeTab={activeTab} onTabChange={(id) => { setActiveTab(id); setSelectedField(null); setIsDiagnosing(null); }} />
+        <SidebarNav activeTab={activeTab} onTabChange={handleTabChange} />
         <SidebarInset className="flex-1 flex flex-col bg-transparent overflow-x-hidden">
           <TopNav 
             currentLocation={currentLocation} 
