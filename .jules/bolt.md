@@ -1,0 +1,3 @@
+## 2026-07-21 - Prevent Unnecessary Re-renders via React.memo
+**Learning:** The application's dashboard architecture relies heavily on layout state variables (activeTab, currentLocation, selectedField) at the top level in `src/app/page.tsx`. Every time one of these layout states changes, it triggers a re-render of child components like `SidebarNav` and `TopNav`. Passing inline functions (like `onTabChange={(id) => { ... }}`) forces components to re-render constantly, which degrades frontend performance.
+**Action:** Wrap heavy or layout-dependent navigation components like `SidebarNav` and `TopNav` in `React.memo` and pass stable function references via `useCallback` from the parent to avoid unnecessary re-renders when unrelated states change.
