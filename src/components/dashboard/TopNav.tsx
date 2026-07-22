@@ -20,7 +20,8 @@ interface TopNavProps {
   onLocationChange: (location: PropertyContext) => void;
 }
 
-export function TopNav({ currentLocation, onLocationChange }: TopNavProps) {
+// ⚡ Bolt: Wrapped in React.memo to prevent unnecessary re-renders when parent layout state changes.
+export const TopNav = React.memo(function TopNav({ currentLocation, onLocationChange }: TopNavProps) {
   return (
     <header className="h-20 border-b bg-background/50 backdrop-blur-3xl flex items-center justify-between px-8 sticky top-0 z-40">
       <div className="flex items-center gap-8 flex-1">
@@ -104,4 +105,4 @@ export function TopNav({ currentLocation, onLocationChange }: TopNavProps) {
       </div>
     </header>
   );
-}
+});
