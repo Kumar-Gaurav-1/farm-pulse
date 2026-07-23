@@ -20,7 +20,9 @@ interface TopNavProps {
   onLocationChange: (location: PropertyContext) => void;
 }
 
-export function TopNav({ currentLocation, onLocationChange }: TopNavProps) {
+// ⚡ Bolt: Memoize TopNav to prevent re-renders when parent Dashboard state changes (e.g., activeTab)
+// Expected Impact: Eliminates unnecessary header re-renders
+export const TopNav = React.memo(function TopNav({ currentLocation, onLocationChange }: TopNavProps) {
   return (
     <header className="h-20 border-b bg-background/50 backdrop-blur-3xl flex items-center justify-between px-8 sticky top-0 z-40">
       <div className="flex items-center gap-8 flex-1">
@@ -104,4 +106,4 @@ export function TopNav({ currentLocation, onLocationChange }: TopNavProps) {
       </div>
     </header>
   );
-}
+});
