@@ -45,7 +45,9 @@ interface SidebarNavProps {
   onTabChange: (id: string) => void;
 }
 
-export function SidebarNav({ activeTab, onTabChange }: SidebarNavProps) {
+// ⚡ Bolt: Memoize SidebarNav to prevent re-renders when parent Dashboard state changes (e.g., isDiagnosing)
+// Expected Impact: Eliminates expensive reconciliation for the sidebar layout
+export const SidebarNav = React.memo(function SidebarNav({ activeTab, onTabChange }: SidebarNavProps) {
   return (
     <Sidebar className="border-r border-border/40 bg-sidebar/30 backdrop-blur-3xl">
       <SidebarHeader className="p-10">
@@ -113,4 +115,4 @@ export function SidebarNav({ activeTab, onTabChange }: SidebarNavProps) {
       </SidebarFooter>
     </Sidebar>
   );
-}
+});
