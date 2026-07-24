@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import { TopNav } from '@/components/dashboard/TopNav';
@@ -76,6 +76,14 @@ export default function Dashboard() {
       setIsBriefing(false);
     }
   };
+
+  // ⚡ Bolt Optimization: Stabilize callback reference to prevent
+  // unnecessary re-renders of the memoized SidebarNav component.
+  const handleTabChange = useCallback((id: string) => {
+    setActiveTab(id);
+    setSelectedField(null);
+    setIsDiagnosing(null);
+  }, []);
 
   const renderContent = () => {
     if (isDiagnosing) {
@@ -293,7 +301,7 @@ export default function Dashboard() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background font-body selection:bg-primary/10">
-        <SidebarNav activeTab={activeTab} onTabChange={(id) => { setActiveTab(id); setSelectedField(null); setIsDiagnosing(null); }} />
+        <SidebarNav activeTab={activeTab} onTabChange={handleTabChange} />
         <SidebarInset className="flex-1 flex flex-col bg-transparent overflow-x-hidden">
           <TopNav 
             currentLocation={currentLocation} 
