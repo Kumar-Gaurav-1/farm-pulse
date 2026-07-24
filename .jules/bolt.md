@@ -1,0 +1,4 @@
+
+## 2024-05-18 - React.memo with Next.js App Router
+**Learning:** In Next.js App Router applications, top-level layout state changes (like selecting a tab or location) can cause massive re-renders of the entire dashboard tree. Components like `SidebarNav` and `TopNav` were re-rendering unnecessarily on every tab change. Wrapping them in `React.memo` and stabilizing props with `useCallback` effectively prunes these rendering subtrees.
+**Action:** Always check the root `page.tsx` or `layout.tsx` for state variables that are passed down. If these variables change frequently but don't affect all children, wrap the heavy/complex children in `React.memo` and stabilize their callback props. Remember that state setters (`setCurrentLocation`) are already stable, but inline functions (`(id) => setActiveTab(id)`) need `useCallback`.
