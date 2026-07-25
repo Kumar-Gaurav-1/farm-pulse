@@ -1,0 +1,3 @@
+## 2024-07-25 - Prevent Unnecessary Re-renders via Stable Function References
+**Learning:** The dashboard architecture relies on global layout state (`activeTab`, `currentLocation`). Passing inline functions as props to heavy child components like `FieldHealth` and `SidebarNav` negates the benefits of `React.memo()`, causing unnecessary re-renders across the app when unrelated state changes. However, React state setter functions (like `setCurrentLocation`) possess stable identities and do not require `useCallback`.
+**Action:** When passing function props from layout components to memoized data-fetching children, always wrap custom handlers in `useCallback()`, but pass raw state setters directly.
