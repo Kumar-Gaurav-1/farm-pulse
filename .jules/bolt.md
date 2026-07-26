@@ -1,0 +1,3 @@
+## 2024-05-24 - Prevent unnecessary re-renders in heavy components
+**Learning:** The application's dashboard architecture relies on global layout state in `page.tsx` (`activeTab`, `currentLocation`). Unrelated state changes cause heavy data-fetching components like `FieldIntelligence` to re-render. Inline functions like `(id) => setIsDiagnosing(id)` or `() => setSelectedField(null)` break memoization. React state setters have stable identities and don't need `useCallback`.
+**Action:** Use `React.memo` on heavy child components. Pass state setters directly where possible (e.g. `onDiagnose={setIsDiagnosing}`), and use `useCallback` for other function props.

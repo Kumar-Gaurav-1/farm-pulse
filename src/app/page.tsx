@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import { TopNav } from '@/components/dashboard/TopNav';
@@ -57,6 +57,14 @@ export default function Dashboard() {
     setFormattedDate(new Date().toLocaleDateString('en-US', options));
   }, []);
 
+  const handleBackDiagnosing = useCallback(() => {
+    setIsDiagnosing(null);
+  }, []);
+
+  const handleBackSelectedField = useCallback(() => {
+    setSelectedField(null);
+  }, []);
+
   const handleAudioBriefing = async () => {
     if (isBriefing) return;
     setIsBriefing(true);
@@ -79,11 +87,11 @@ export default function Dashboard() {
 
   const renderContent = () => {
     if (isDiagnosing) {
-      return <AnomalyDiagnosis fieldId={isDiagnosing} onBack={() => setIsDiagnosing(null)} />;
+      return <AnomalyDiagnosis fieldId={isDiagnosing} onBack={handleBackDiagnosing} />;
     }
 
     if (selectedField) {
-      return <FieldIntelligence fieldId={selectedField} onBack={() => setSelectedField(null)} />;
+      return <FieldIntelligence fieldId={selectedField} onBack={handleBackSelectedField} />;
     }
 
     switch (activeTab) {
@@ -265,7 +273,7 @@ export default function Dashboard() {
       case 'weather':
         return <WeatherIntelligence />;
       case 'field-health':
-        return <FieldHealth onDiagnose={(id) => setIsDiagnosing(id)} />;
+        return <FieldHealth onDiagnose={setIsDiagnosing} />;
       case 'advisory':
         return <AdvisoryDashboard />;
       case 'market':
