@@ -74,6 +74,15 @@ export function AlertCenter() {
     ? notifications 
     : notifications.filter(n => !n.read);
 
+  // OPTIMIZATION: Calculate counts in a single pass instead of 4 separate array iterations
+  const counts = React.useMemo(() => {
+    const res = { weather: 0, field: 0, market: 0, system: 0 };
+    for (let i = 0; i < notifications.length; i++) {
+      res[notifications[i].type]++;
+    }
+    return res;
+  }, [notifications]);
+
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
   };
@@ -192,10 +201,10 @@ export function AlertCenter() {
             </CardHeader>
             <CardContent className="p-0 space-y-6">
               {[
-                { label: 'Weather', count: notifications.filter(n => n.type === 'weather').length, color: 'bg-blue-500' },
-                { label: 'Field Health', count: notifications.filter(n => n.type === 'field').length, color: 'bg-red-500' },
-                { label: 'Market Signals', count: notifications.filter(n => n.type === 'market').length, color: 'bg-orange-500' },
-                { label: 'System Logs', count: notifications.filter(n => n.type === 'system').length, color: 'bg-primary' },
+                { label: 'Weather', count: counts.weather, color: 'bg-blue-500' },
+                { label: 'Field Health', count: counts.field, color: 'bg-red-500' },
+                { label: 'Market Signals', count: counts.market, color: 'bg-orange-500' },
+                { label: 'System Logs', count: counts.system, color: 'bg-primary' },
               ].map((cat, i) => (
                 <div key={i} className="flex items-center justify-between p-6 bg-muted/20 rounded-[1.75rem] hover:bg-white transition-all cursor-pointer group">
                   <div className="flex items-center gap-4">
