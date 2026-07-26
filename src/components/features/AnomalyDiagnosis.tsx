@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { fieldAnomalyAnalysisRecommendation, type FieldAnomalyAnalysisRecommendationOutput } from '@/ai/flows/field-anomaly-analysis-recommendation';
+import { fieldAnomalyAnalysisRecommendation } from '@/ai/flows/field-anomaly-analysis-recommendation';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -31,7 +31,7 @@ interface AnomalyDiagnosisProps {
 export function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
   const [loading, setLoading] = useState(false);
   const [description, setDescription] = useState('');
-  const [diagnosis, setDiagnosis] = useState<FieldAnomalyAnalysisRecommendationOutput | null>(null);
+  const [diagnosis, setDiagnosis] = useState<Awaited<ReturnType<typeof fieldAnomalyAnalysisRecommendation>> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleDiagnose = async () => {
