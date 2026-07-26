@@ -1,0 +1,4 @@
+- Date: 2024-05-14
+- Title: Optimize multiple array filters to a single reduce pass
+- Learning: Performing multiple `.filter().length` calls on an array inside a render path causes redundant array iterations (O(N*M) where N is array length and M is number of filters).
+- Action: Consolidate multiple filter passes into a single `.reduce()` pass and memoize the result using `useMemo` to prevent recalculation on unrelated re-renders. This changes the time complexity from O(N*M) to O(N).
