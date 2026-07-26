@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Bell, 
   CloudRain, 
@@ -81,6 +81,17 @@ export function AlertCenter() {
   const deleteNotification = (id: string) => {
     setNotifications(notifications.filter(n => n.id !== id));
   };
+
+  const counts = useMemo(() => {
+    return notifications.reduce(
+      (acc, n) => {
+        acc[n.type] = (acc[n.type] || 0) + 1;
+        return acc;
+      },
+      { weather: 0, field: 0, market: 0, system: 0 } as Record<string, number>
+    );
+  }, [notifications]);
+
 
   return (
     <div className="page-transition space-y-12">
@@ -192,10 +203,10 @@ export function AlertCenter() {
             </CardHeader>
             <CardContent className="p-0 space-y-6">
               {[
-                { label: 'Weather', count: notifications.filter(n => n.type === 'weather').length, color: 'bg-blue-500' },
-                { label: 'Field Health', count: notifications.filter(n => n.type === 'field').length, color: 'bg-red-500' },
-                { label: 'Market Signals', count: notifications.filter(n => n.type === 'market').length, color: 'bg-orange-500' },
-                { label: 'System Logs', count: notifications.filter(n => n.type === 'system').length, color: 'bg-primary' },
+                { label: 'Weather', count: counts.weather, color: 'bg-blue-500' },
+                { label: 'Field Health', count: counts.field, color: 'bg-red-500' },
+                { label: 'Market Signals', count: counts.market, color: 'bg-orange-500' },
+                { label: 'System Logs', count: counts.system, color: 'bg-primary' },
               ].map((cat, i) => (
                 <div key={i} className="flex items-center justify-between p-6 bg-muted/20 rounded-[1.75rem] hover:bg-white transition-all cursor-pointer group">
                   <div className="flex items-center gap-4">
