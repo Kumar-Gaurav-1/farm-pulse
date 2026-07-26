@@ -28,7 +28,7 @@ interface AnomalyDiagnosisProps {
   onBack: () => void;
 }
 
-export function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
+export const AnomalyDiagnosis = React.memo(function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
   const [loading, setLoading] = useState(false);
   const [description, setDescription] = useState('');
   const [diagnosis, setDiagnosis] = useState<FieldAnomalyAnalysisRecommendationOutput | null>(null);
@@ -210,4 +210,4 @@ export function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
       </div>
     </div>
   );
-}
+});
