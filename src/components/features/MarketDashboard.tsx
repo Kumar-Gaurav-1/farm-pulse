@@ -21,13 +21,13 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { marketTrendSynthesis, type MarketTrendSynthesisOutput } from '@/ai/flows/market-trend-synthesis-flow';
+import { marketTrendSynthesis } from '@/ai/flows/market-trend-synthesis-flow';
 import { ApiServices, type CurrencyImpact, type MarketCalendarEvent } from '@/lib/api-services';
 
 export function MarketDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [marketData, setMarketData] = useState<MarketTrendSynthesisOutput | null>(null);
+  const [marketData, setMarketData] = useState<Awaited<ReturnType<typeof marketTrendSynthesis>> | null>(null);
   const [currency, setCurrency] = useState<CurrencyImpact | null>(null);
   const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>([]);
 
