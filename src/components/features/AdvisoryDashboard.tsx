@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { contextualCropWeatherAdvisory, type ContextualCropWeatherAdvisoryOutput } from '@/ai/flows/contextual-crop-weather-advisory';
 import { Progress } from '@/components/ui/progress';
 
-export function AdvisoryDashboard() {
+export const AdvisoryDashboard = React.memo(function AdvisoryDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [advisoryData, setAdvisoryData] = useState<ContextualCropWeatherAdvisoryOutput | null>(null);
@@ -175,4 +175,4 @@ export function AdvisoryDashboard() {
       </div>
     </div>
   );
-}
+});
