@@ -22,7 +22,7 @@ interface FieldHealthProps {
   onDiagnose?: (fieldId: string) => void;
 }
 
-export function FieldHealth({ onDiagnose }: FieldHealthProps) {
+export const FieldHealth = React.memo(function FieldHealth({ onDiagnose }: FieldHealthProps) {
   const [activeLayer, setActiveLayer] = useState('NDVI (Vigour)');
 
   const handleInitiateDiagnosis = (fieldId: string) => {
@@ -180,4 +180,4 @@ export function FieldHealth({ onDiagnose }: FieldHealthProps) {
       </Card>
     </div>
   );
-}
+});

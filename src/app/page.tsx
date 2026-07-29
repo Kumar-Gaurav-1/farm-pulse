@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import { TopNav } from '@/components/dashboard/TopNav';
@@ -265,7 +265,7 @@ export default function Dashboard() {
       case 'weather':
         return <WeatherIntelligence />;
       case 'field-health':
-        return <FieldHealth onDiagnose={(id) => setIsDiagnosing(id)} />;
+        return <FieldHealth onDiagnose={setIsDiagnosing} />;
       case 'advisory':
         return <AdvisoryDashboard />;
       case 'market':
@@ -290,10 +290,17 @@ export default function Dashboard() {
     }
   };
 
+  // Memoize the tab change handler to prevent SidebarNav from re-rendering
+  const handleTabChange = useCallback((id: string) => {
+    setActiveTab(id);
+    setSelectedField(null);
+    setIsDiagnosing(null);
+  }, []);
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background font-body selection:bg-primary/10">
-        <SidebarNav activeTab={activeTab} onTabChange={(id) => { setActiveTab(id); setSelectedField(null); setIsDiagnosing(null); }} />
+        <SidebarNav activeTab={activeTab} onTabChange={handleTabChange} />
         <SidebarInset className="flex-1 flex flex-col bg-transparent overflow-x-hidden">
           <TopNav 
             currentLocation={currentLocation} 
