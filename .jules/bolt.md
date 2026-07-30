@@ -1,0 +1,3 @@
+## 2024-07-30 - Prevent unnecessary re-renders of navigation components
+**Learning:** The application's dashboard architecture relies on global layout state (`activeTab`, `currentLocation`). Because they are at the root level, unrelated layout state changes cause heavy layout components like `SidebarNav` and `TopNav` to re-render. Furthermore, inline functions passed to these components negate any memoization.
+**Action:** Wrap heavy layout child components in `React.memo` and ensure the parent component passes stable function references (via `useCallback` or direct state setters) to maintain memoization benefits.
