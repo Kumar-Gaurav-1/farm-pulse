@@ -22,7 +22,8 @@ interface FieldHealthProps {
   onDiagnose?: (fieldId: string) => void;
 }
 
-export function FieldHealth({ onDiagnose }: FieldHealthProps) {
+// ⚡ Bolt Optimization: Wrap component in React.memo to prevent unnecessary re-renders when parent layout state changes.
+export const FieldHealth = React.memo(function FieldHealth({ onDiagnose }: FieldHealthProps) {
   const [activeLayer, setActiveLayer] = useState('NDVI (Vigour)');
 
   const handleInitiateDiagnosis = (fieldId: string) => {
@@ -180,4 +181,4 @@ export function FieldHealth({ onDiagnose }: FieldHealthProps) {
       </Card>
     </div>
   );
-}
+});
