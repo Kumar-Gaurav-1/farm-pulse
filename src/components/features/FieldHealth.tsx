@@ -22,7 +22,9 @@ interface FieldHealthProps {
   onDiagnose?: (fieldId: string) => void;
 }
 
-export function FieldHealth({ onDiagnose }: FieldHealthProps) {
+// ⚡ Bolt: Wrapped heavy data-fetching child component in React.memo
+// to prevent unnecessary re-renders on unrelated layout state changes (e.g., activeTab, currentLocation).
+export const FieldHealth = React.memo(function FieldHealth({ onDiagnose }: FieldHealthProps) {
   const [activeLayer, setActiveLayer] = useState('NDVI (Vigour)');
 
   const handleInitiateDiagnosis = (fieldId: string) => {
@@ -180,4 +182,4 @@ export function FieldHealth({ onDiagnose }: FieldHealthProps) {
       </Card>
     </div>
   );
-}
+});
