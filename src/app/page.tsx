@@ -265,7 +265,9 @@ export default function Dashboard() {
       case 'weather':
         return <WeatherIntelligence />;
       case 'field-health':
-        return <FieldHealth onDiagnose={(id) => setIsDiagnosing(id)} />;
+        // ⚡ Bolt: Passed the state setter directly instead of an inline function
+        // to maintain a stable reference and avoid negating React.memo on the child component.
+        return <FieldHealth onDiagnose={setIsDiagnosing as (id: string) => void} />;
       case 'advisory':
         return <AdvisoryDashboard />;
       case 'market':

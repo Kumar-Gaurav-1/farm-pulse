@@ -1,0 +1,3 @@
+## 2024-05-18 - Dashboard Architecture Re-renders
+**Learning:** The application's dashboard architecture in `page.tsx` relies on global layout state (`activeTab`, `currentLocation`). Unrelated state changes cause the active feature component (e.g., `FieldHealth`) to re-render. Additionally, using inline functions for component props negates `React.memo()`.
+**Action:** Always wrap heavy data-fetching child components in `React.memo` and ensure the parent component passes stable function references (e.g., passing state setters directly or using `useCallback`) to avoid unnecessary re-renders on layout state changes.
