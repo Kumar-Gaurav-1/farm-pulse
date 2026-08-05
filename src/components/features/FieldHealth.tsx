@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,9 @@ interface FieldHealthProps {
   onDiagnose?: (fieldId: string) => void;
 }
 
-export function FieldHealth({ onDiagnose }: FieldHealthProps) {
+// ⚡ Bolt: Wrapped in React.memo to prevent unnecessary re-renders when parent layout state changes.
+// Requires onDiagnose prop to be passed with stable identity (like a direct state setter).
+export const FieldHealth = memo(function FieldHealth({ onDiagnose }: FieldHealthProps) {
   const [activeLayer, setActiveLayer] = useState('NDVI (Vigour)');
 
   const handleInitiateDiagnosis = (fieldId: string) => {
@@ -180,4 +182,4 @@ export function FieldHealth({ onDiagnose }: FieldHealthProps) {
       </Card>
     </div>
   );
-}
+});

@@ -265,7 +265,8 @@ export default function Dashboard() {
       case 'weather':
         return <WeatherIntelligence />;
       case 'field-health':
-        return <FieldHealth onDiagnose={(id) => setIsDiagnosing(id)} />;
+        // ⚡ Bolt: Pass stable state setter directly to maintain memoization optimization
+        return <FieldHealth onDiagnose={setIsDiagnosing} />;
       case 'advisory':
         return <AdvisoryDashboard />;
       case 'market':
