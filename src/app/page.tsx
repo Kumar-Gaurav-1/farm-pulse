@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import { TopNav } from '@/components/dashboard/TopNav';
@@ -47,6 +47,8 @@ export default function Dashboard() {
   const [currentLocation, setCurrentLocation] = useState<PropertyContext>(PROPERTIES[0]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const handleBackFromField = useCallback(() => setSelectedField(null), []);
+
   useEffect(() => {
     const options: Intl.DateTimeFormatOptions = { 
       weekday: 'long', 
@@ -83,7 +85,7 @@ export default function Dashboard() {
     }
 
     if (selectedField) {
-      return <FieldIntelligence fieldId={selectedField} onBack={() => setSelectedField(null)} />;
+      return <FieldIntelligence fieldId={selectedField} onBack={handleBackFromField} />;
     }
 
     switch (activeTab) {

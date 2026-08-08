@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { 
   ArrowLeft, 
   Droplets, 
@@ -51,7 +51,7 @@ interface FieldIntelligenceProps {
   onBack: () => void;
 }
 
-export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
+export const FieldIntelligence = memo(function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
   const [activeView, setActiveView] = useState<'status' | 'analysis' | 'history'>('status');
   const [ndvi, setNdvi] = useState<any>(null);
   const [benchmark, setBenchmark] = useState<any>(null);
@@ -321,4 +321,4 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
       </div>
     </div>
   );
-}
+});
