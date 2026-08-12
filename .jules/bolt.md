@@ -1,0 +1,3 @@
+## 2024-08-12 - Prevent TopNav and SidebarNav re-renders on page changes
+**Learning:** The layout component `src/app/page.tsx` passes a stable `activeTab` to `SidebarNav`, but the `onTabChange` prop and `onLocationChange` in `TopNav` recreate functions on every render (due to inline arrows in `src/app/page.tsx` or lacking `useCallback` in `page.tsx`). Additionally, the `TopNav` and `SidebarNav` components are not memoized, causing unnecessary re-renders of the entire navigation stack whenever the heavy dashboard features update state (like `isBriefing`, `audioSrc`, `isDiagnosing`, etc. in `src/app/page.tsx`).
+**Action:** Wrap `TopNav` and `SidebarNav` with `React.memo` and update `src/app/page.tsx` to use `useCallback` for `onTabChange` and `onLocationChange`.
