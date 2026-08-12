@@ -24,6 +24,12 @@ import { Button } from '@/components/ui/button';
 import { marketTrendSynthesis, type MarketTrendSynthesisOutput } from '@/ai/flows/market-trend-synthesis-flow';
 import { ApiServices, type CurrencyImpact, type MarketCalendarEvent } from '@/lib/api-services';
 
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+let cachedMarketData: MarketTrendSynthesisOutput | null = null;
+let cachedCurrency: CurrencyImpact | null = null;
+let cachedDeadlines: MarketCalendarEvent[] | null = null;
+let lastFetchTime = 0;
+
 export function MarketDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +37,14 @@ export function MarketDashboard() {
   const [currency, setCurrency] = useState<CurrencyImpact | null>(null);
   const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>([]);
 
-  const fetchMarketIntelligence = async () => {
+  const fetchMarketIntelligence = async (force: boolean = false) => {
+    if (!force && cachedMarketData && cachedCurrency && cachedDeadlines && (Date.now() - lastFetchTime < CACHE_DURATION_MS)) {
+      setMarketData(cachedMarketData);
+      setCurrency(cachedCurrency);
+      setDeadlines(cachedDeadlines);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -44,6 +57,11 @@ export function MarketDashboard() {
         ApiServices.getExchangeRates('USD', 'EUR'),
         ApiServices.getDeadlines()
       ]);
+      cachedMarketData = synth;
+      cachedCurrency = fx;
+      cachedDeadlines = cal;
+      lastFetchTime = Date.now();
+
       setMarketData(synth);
       setCurrency(fx);
       setDeadlines(cal);
@@ -60,7 +78,7 @@ export function MarketDashboard() {
   };
 
   useEffect(() => {
-    fetchMarketIntelligence();
+    fetchMarketIntelligence(false);
   }, []);
 
   return (
@@ -79,7 +97,7 @@ export function MarketDashboard() {
                 </div>
               </div>
               {!error && (
-                <Button variant="outline" onClick={fetchMarketIntelligence} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
+                <Button variant="outline" onClick={() => fetchMarketIntelligence(true)} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
                   {loading ? <RefreshCcw className="w-4 h-4 animate-spin mr-3" /> : null}
                   Sync Streams
                 </Button>
@@ -101,7 +119,7 @@ export function MarketDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchMarketIntelligence} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchMarketIntelligence(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Analysis Stream
                  </Button>
               </div>
