@@ -26,18 +26,32 @@ const chartData = [
   { name: 'Jun', footprint: 30, capture: 65 },
 ];
 
+let dashboardDataCache: Promise<[any, any]> | null = null;
+
 export function SustainabilityDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [compliance, setCompliance] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [m, c] = await Promise.all([
-        ApiServices.getCarbonMetrics('VVE-2024'),
-        ApiServices.getComplianceStandards('certified-grains')
-      ]);
-      setMetrics(m);
-      setCompliance(c);
+      if (!dashboardDataCache) {
+        dashboardDataCache = Promise.all([
+          ApiServices.getCarbonMetrics('VVE-2024'),
+          ApiServices.getComplianceStandards('certified-grains')
+        ]).catch(err => {
+          // Clear cache on error so subsequent mounts can retry
+          dashboardDataCache = null;
+          throw err;
+        });
+      }
+
+      try {
+        const [m, c] = await dashboardDataCache;
+        setMetrics(m);
+        setCompliance(c);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      }
     };
     fetchData();
   }, []);
