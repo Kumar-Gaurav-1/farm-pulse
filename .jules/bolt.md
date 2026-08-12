@@ -1,0 +1,1 @@
+Date: 2023-10-24\nTitle: SustainabilityDashboard Caching Optimization\nLearning: A module-level promise cache ensures multiple mounts within a short timeframe do not trigger redundant API calls.\nAction: Added module-level promise variables in SustainabilityDashboard.tsx to cache initial API requests for Carbon Metrics and Compliance Standards.
