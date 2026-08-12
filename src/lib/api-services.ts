@@ -24,6 +24,8 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+const cache = new Map<string, Promise<any>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -42,14 +44,20 @@ export const ApiServices = {
   /**
    * Mock integration for Carbon Interface
    */
-  async getCarbonMetrics(farmId: string) {
-    // https://docs.carboninterface.com/
-    return {
-      sequestrationRate: 2.4, // tCO2e/Ha
-      totalFootprint: 142.5,
-      netImpact: -12.4, // Net positive
-      complianceScore: 94
-    };
+  getCarbonMetrics(farmId: string): Promise<any> {
+    const cacheKey = `carbon-${farmId}`;
+    if (!cache.has(cacheKey)) {
+      cache.set(cacheKey, (async () => {
+        // https://docs.carboninterface.com/
+        return {
+          sequestrationRate: 2.4, // tCO2e/Ha
+          totalFootprint: 142.5,
+          netImpact: -12.4, // Net positive
+          complianceScore: 94
+        };
+      })());
+    }
+    return cache.get(cacheKey)!;
   },
 
   /**
@@ -97,12 +105,18 @@ export const ApiServices = {
   /**
    * Open Food Facts for traceability standards
    */
-  async getComplianceStandards(category: string) {
-    // https://world.openfoodfacts.org/api/v2
-    return {
-      label: 'Eco-Score A',
-      certifications: ['Fair Trade', 'EU Organic', 'Rainforest Alliance'],
-      traceabilityScore: 0.98
-    };
+  getComplianceStandards(category: string): Promise<any> {
+    const cacheKey = `compliance-${category}`;
+    if (!cache.has(cacheKey)) {
+      cache.set(cacheKey, (async () => {
+        // https://world.openfoodfacts.org/api/v2
+        return {
+          label: 'Eco-Score A',
+          certifications: ['Fair Trade', 'EU Organic', 'Rainforest Alliance'],
+          traceabilityScore: 0.98
+        };
+      })());
+    }
+    return cache.get(cacheKey)!;
   }
 };
