@@ -26,18 +26,33 @@ const chartData = [
   { name: 'Jun', footprint: 30, capture: 65 },
 ];
 
+// Module-level caches to prevent redundant API calls on remounts
+let metricsCache: Promise<any> | null = null;
+let complianceCache: Promise<any> | null = null;
+
 export function SustainabilityDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [compliance, setCompliance] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [m, c] = await Promise.all([
-        ApiServices.getCarbonMetrics('VVE-2024'),
-        ApiServices.getComplianceStandards('certified-grains')
-      ]);
-      setMetrics(m);
-      setCompliance(c);
+      if (!metricsCache) {
+        metricsCache = ApiServices.getCarbonMetrics('VVE-2024');
+      }
+      if (!complianceCache) {
+        complianceCache = ApiServices.getComplianceStandards('certified-grains');
+      }
+
+      try {
+        const [m, c] = await Promise.all([metricsCache, complianceCache]);
+        setMetrics(m);
+        setCompliance(c);
+      } catch (error) {
+        console.error("Error fetching sustainability data", error);
+        // Reset cache on error so subsequent attempts can retry
+        metricsCache = null;
+        complianceCache = null;
+      }
     };
     fetchData();
   }, []);
