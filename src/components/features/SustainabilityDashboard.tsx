@@ -26,16 +26,32 @@ const chartData = [
   { name: 'Jun', footprint: 30, capture: 65 },
 ];
 
+// ⚡ Bolt Performance Optimization:
+// Introduce a module-level cache to prevent redundant API calls
+// when the component mounts multiple times.
+let cachedMetrics: any = null;
+let cachedCompliance: any = null;
+
 export function SustainabilityDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [compliance, setCompliance] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (cachedMetrics && cachedCompliance) {
+        setMetrics(cachedMetrics);
+        setCompliance(cachedCompliance);
+        return;
+      }
+
       const [m, c] = await Promise.all([
         ApiServices.getCarbonMetrics('VVE-2024'),
         ApiServices.getComplianceStandards('certified-grains')
       ]);
+
+      cachedMetrics = m;
+      cachedCompliance = c;
+
       setMetrics(m);
       setCompliance(c);
     };

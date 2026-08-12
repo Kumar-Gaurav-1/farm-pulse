@@ -1,0 +1,4 @@
+- Date: 2024-05-24 (simulated)
+- Title: Client-side Data Fetching Redundancy
+- Learning: Repeatedly mounting un-cached, data-fetching components triggers unnecessary layout API calls. This impacts UI reactivity and causes potential quotas or throttling if backends limit requests.
+- Action: Introduced module-level caching in the `SustainabilityDashboard` component to cache the output of static or slow-changing compliance and metrics APIs across unmount/remount cycles.
