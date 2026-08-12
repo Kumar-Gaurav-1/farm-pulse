@@ -51,6 +51,8 @@ interface FieldIntelligenceProps {
   onBack: () => void;
 }
 
+const apiCache: Record<string, { ndvi: any; benchmark: any }> = {};
+
 export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
   const [activeView, setActiveView] = useState<'status' | 'analysis' | 'history'>('status');
   const [ndvi, setNdvi] = useState<any>(null);
@@ -60,12 +62,25 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
 
   useEffect(() => {
     const fetchData = async () => {
+      const cacheKey = `${fieldId}-Corn-Kansas`;
+
+      // Optimization: Return cached results immediately to avoid redundant API calls
+      if (apiCache[cacheKey]) {
+        setNdvi(apiCache[cacheKey].ndvi);
+        setBenchmark(apiCache[cacheKey].benchmark);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const [n, b] = await Promise.all([
           ApiServices.getFieldNDVI(fieldId),
           ApiServices.getYieldBenchmarks('Corn', 'Kansas')
         ]);
+
+        apiCache[cacheKey] = { ndvi: n, benchmark: b };
+
         setNdvi(n);
         setBenchmark(b);
       } catch (err) {
