@@ -51,6 +51,9 @@ interface FieldIntelligenceProps {
   onBack: () => void;
 }
 
+// ⚡ Bolt: Module-level cache to prevent repeated API calls on component mount
+const fieldDataCache = new Map<string, { ndvi: any; benchmark: any }>();
+
 export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
   const [activeView, setActiveView] = useState<'status' | 'analysis' | 'history'>('status');
   const [ndvi, setNdvi] = useState<any>(null);
@@ -62,10 +65,20 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        if (fieldDataCache.has(fieldId)) {
+          const cached = fieldDataCache.get(fieldId)!;
+          setNdvi(cached.ndvi);
+          setBenchmark(cached.benchmark);
+          return;
+        }
+
         const [n, b] = await Promise.all([
           ApiServices.getFieldNDVI(fieldId),
           ApiServices.getYieldBenchmarks('Corn', 'Kansas')
         ]);
+
+        fieldDataCache.set(fieldId, { ndvi: n, benchmark: b });
+
         setNdvi(n);
         setBenchmark(b);
       } catch (err) {
