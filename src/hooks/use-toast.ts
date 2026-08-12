@@ -97,22 +97,36 @@ export const reducer = (state: State, action: Action): State => {
       // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
+        return {
+          ...state,
+          toasts: state.toasts.map((t) =>
+            t.id === toastId
+              ? {
+                  ...t,
+                  open: false,
+                }
+              : t
+          ),
+        }
+      }
+
+      // ⚡ Bolt Performance Optimization:
+      // When toastId is undefined, we need to dismiss all toasts.
+      // We combine the iteration to add to remove queue and the mapping
+      // of the open state to avoid O(2N) array traversal.
+      const updatedToasts = []
+      for (let i = 0; i < state.toasts.length; i++) {
+        const toast = state.toasts[i]
+        addToRemoveQueue(toast.id)
+        updatedToasts.push({
+          ...toast,
+          open: false,
         })
       }
 
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === toastId || toastId === undefined
-            ? {
-                ...t,
-                open: false,
-              }
-            : t
-        ),
+        toasts: updatedToasts,
       }
     }
     case "REMOVE_TOAST":
