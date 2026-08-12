@@ -95,24 +95,18 @@ export const reducer = (state: State, action: Action): State => {
 
       // ! Side effects ! - This could be extracted into a dismissToast() action,
       // but I'll keep it here for simplicity
-      if (toastId) {
-        addToRemoveQueue(toastId)
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
-        })
-      }
-
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === toastId || toastId === undefined
-            ? {
-                ...t,
-                open: false,
-              }
-            : t
-        ),
+        toasts: state.toasts.map((t) => {
+          if (t.id === toastId || toastId === undefined) {
+            addToRemoveQueue(t.id)
+            return {
+              ...t,
+              open: false,
+            }
+          }
+          return t
+        }),
       }
     }
     case "REMOVE_TOAST":
