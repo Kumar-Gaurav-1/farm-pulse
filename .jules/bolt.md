@@ -1,0 +1,3 @@
+## 2024-08-13 - Promise Caching for Multi-REST Fetching
+**Learning:** In Next.js architectures where components unmount/remount frequently (e.g. tab switching), caching only the resolved data from a `Promise.all` multi-REST fetch can still result in redundant network calls if components remount before the initial promises resolve.
+**Action:** Implement a module-level variable to cache the `Promise` itself rather than just the resolved data to handle concurrent requests correctly, and include an error handling mechanism to clear the cache upon rejection to prevent permanent blocking of successful retries.
