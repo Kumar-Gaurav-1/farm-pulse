@@ -1,0 +1,3 @@
+## 2024-05-18 - Module-level Promise Caching for AI flows in Tabbed Interfaces
+**Learning:** In Next.js apps with client-side tabbed interfaces (like `src/app/page.tsx`), child components unmount and remount on every tab switch. This triggers expensive AI flows (e.g., Genkit calls) inside `useEffect` repeatedly, consuming API quotas, increasing load times, and degrading user experience.
+**Action:** Implement module-level Promise caching outside the React component scope to persist data across remounts, along with a `forceRefresh` parameter for user-initiated re-fetches and cache invalidation on error.
