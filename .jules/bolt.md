@@ -1,0 +1,3 @@
+## 2024-10-27 - Caching API calls across component remounts
+**Learning:** When using Next.js or React with components that frequently mount and unmount (e.g., when switching tabs in a dashboard), fetching data in `useEffect` on mount can lead to redundant and expensive API calls (especially for LLM/AI endpoints like `marketTrendSynthesis`).
+**Action:** Implement a module-level cache (e.g., storing the Promise itself) outside the component scope to cache responses across remounts, and ensure the cache handles rejections by clearing itself, while maintaining a bypass mechanism (e.g., a `forceRefresh` parameter) for manual user updates.
