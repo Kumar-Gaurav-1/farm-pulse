@@ -24,6 +24,9 @@ import { Button } from '@/components/ui/button';
 import { marketTrendSynthesis, type MarketTrendSynthesisOutput } from '@/ai/flows/market-trend-synthesis-flow';
 import { ApiServices, type CurrencyImpact, type MarketCalendarEvent } from '@/lib/api-services';
 
+// Cache the promise at the module level to prevent redundant fetches on component remounts
+let cachedMarketPromise: Promise<[MarketTrendSynthesisOutput, CurrencyImpact, MarketCalendarEvent[]]> | null = null;
+
 export function MarketDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,11 +34,12 @@ export function MarketDashboard() {
   const [currency, setCurrency] = useState<CurrencyImpact | null>(null);
   const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>([]);
 
-  const fetchMarketIntelligence = async () => {
+  const fetchMarketIntelligence = async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
-    try {
-      const [synth, fx, cal] = await Promise.all([
+
+    if (forceRefresh || !cachedMarketPromise) {
+      cachedMarketPromise = Promise.all([
         marketTrendSynthesis({
           cropType: "Wheat & Soybeans",
           location: "United States (Midwest)",
@@ -44,10 +48,16 @@ export function MarketDashboard() {
         ApiServices.getExchangeRates('USD', 'EUR'),
         ApiServices.getDeadlines()
       ]);
+    }
+
+    try {
+      const [synth, fx, cal] = await cachedMarketPromise;
       setMarketData(synth);
       setCurrency(fx);
       setDeadlines(cal);
     } catch (err: any) {
+      // Clear cache on error so subsequent retries fetch again
+      cachedMarketPromise = null;
       console.error("Error fetching market intelligence:", err);
       if (err.message?.includes('429') || err.message?.includes('quota')) {
         setError("Market Analysis Engine is currently busy handling high regional demand. Please try again in a moment.");
@@ -79,7 +89,7 @@ export function MarketDashboard() {
                 </div>
               </div>
               {!error && (
-                <Button variant="outline" onClick={fetchMarketIntelligence} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
+                <Button variant="outline" onClick={() => fetchMarketIntelligence(true)} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
                   {loading ? <RefreshCcw className="w-4 h-4 animate-spin mr-3" /> : null}
                   Sync Streams
                 </Button>
@@ -101,7 +111,7 @@ export function MarketDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchMarketIntelligence} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchMarketIntelligence(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Analysis Stream
                  </Button>
               </div>
