@@ -1,0 +1,3 @@
+## 2024-08-17 - Module-level caching for API responses in Next.js SPA
+**Learning:** React components (like `MarketDashboard`) that fetch expensive static/semi-static data on mount via `useEffect` will re-trigger network requests every time the user navigates away and back, leading to redundant API/Genkit calls and slower perceived performance.
+**Action:** Implement a module-level cache (e.g., storing the `Promise` outside the component scope) to serve as a lightweight mechanism to prevent redundant calls across unmounts/remounts. Ensure to add a `forceRefresh` option for manual user triggers and clear the cache on rejection.
