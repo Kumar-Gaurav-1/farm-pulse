@@ -1,0 +1,3 @@
+## 2024-08-18 - Caching API Responses Across Components
+**Learning:** Components like `MarketDashboard` fetch static or semi-static data (like currency rates, deadlines, or AI flows) every time they are mounted. Because Next.js uses conditional rendering for these tabs (`setActiveTab`), switching between tabs like "Market" and "Overview" unmounts and remounts the component, triggering identical network requests.
+**Action:** Implement a module-level Promise cache to prevent redundant API calls across React component remounts for semi-static data fetches. Ensure there is a way to bypass this cache when user-triggered manual refresh actions occur. If the cached promise fails, it must clear itself to allow subsequent retries to succeed.
