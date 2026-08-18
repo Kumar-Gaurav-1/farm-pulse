@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { ApiServices } from '@/lib/api-services';
+import { ApiServices, YieldBenchmark, NDVIStats } from '@/lib/api-services';
 import { 
   AreaChart, 
   Area, 
@@ -53,8 +53,8 @@ interface FieldIntelligenceProps {
 
 export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
   const [activeView, setActiveView] = useState<'status' | 'analysis' | 'history'>('status');
-  const [ndvi, setNdvi] = useState<any>(null);
-  const [benchmark, setBenchmark] = useState<any>(null);
+  const [ndvi, setNdvi] = useState<NDVIStats | null>(null);
+  const [benchmark, setBenchmark] = useState<YieldBenchmark | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBoosting, setIsBoosting] = useState(false);
 
