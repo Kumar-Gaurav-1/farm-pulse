@@ -24,6 +24,12 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+export interface ComplianceStandards {
+  label: string;
+  certifications: string[];
+  traceabilityScore: number;
+}
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -97,7 +103,7 @@ export const ApiServices = {
   /**
    * Open Food Facts for traceability standards
    */
-  async getComplianceStandards(category: string) {
+  async getComplianceStandards(category: string): Promise<ComplianceStandards> {
     // https://world.openfoodfacts.org/api/v2
     return {
       label: 'Eco-Score A',
