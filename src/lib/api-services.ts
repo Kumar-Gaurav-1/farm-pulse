@@ -24,6 +24,12 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+export interface YieldBenchmark {
+  regionalAverage: number;
+  percentile: number;
+  unit: string;
+}
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -85,7 +91,7 @@ export const ApiServices = {
   /**
    * USDA NASS for yield benchmarking
    */
-  async getYieldBenchmarks(crop: string, region: string) {
+  async getYieldBenchmarks(crop: string, region: string): Promise<YieldBenchmark> {
     // https://quickstats.nass.usda.gov/api/
     return {
       regionalAverage: 178.5,
