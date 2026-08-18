@@ -47,9 +47,9 @@ export function AnomalyDiagnosis({ fieldId, onBack }: AnomalyDiagnosisProps) {
         recentWeatherConditions: "High humidity, rising temperatures (32C), recent isolated showers."
       });
       setDiagnosis(result);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Diagnosis error:", err);
-      if (err.message?.includes('429') || err.message?.includes('quota')) {
+      if (err instanceof Error && (err.message.includes('429') || err.message.includes('quota'))) {
         setError("Intelligence Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
         setError("Unable to synthesize diagnostic telemetry. Please check your connection.");
