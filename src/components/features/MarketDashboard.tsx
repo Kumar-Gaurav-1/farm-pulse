@@ -47,9 +47,9 @@ export function MarketDashboard() {
       setMarketData(synth);
       setCurrency(fx);
       setDeadlines(cal);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching market intelligence:", err);
-      if (err.message?.includes('429') || err.message?.includes('quota')) {
+      if (err instanceof Error && (err.message.includes('429') || err.message.includes('quota'))) {
         setError("Market Analysis Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
         setError("Unable to synthesize global economic vectors. Please check your connection.");
