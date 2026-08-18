@@ -110,7 +110,7 @@ export function FieldIntelligence({ fieldId, onBack }: FieldIntelligenceProps) {
             <Button 
               key={v}
               variant={activeView === v ? 'default' : 'ghost'}
-              onClick={() => setActiveView(v as any)}
+              onClick={() => setActiveView(v as 'status' | 'analysis' | 'history')}
               className={cn(
                 "apple-btn rounded-full px-10 h-12 text-[10px] font-black uppercase tracking-widest transition-all",
                 activeView === v ? "bg-white dark:bg-white/10 text-primary shadow-xl ring-1 ring-black/5" : "text-muted-foreground hover:bg-white/50"
