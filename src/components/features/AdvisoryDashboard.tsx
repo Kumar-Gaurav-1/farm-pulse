@@ -42,9 +42,9 @@ export function AdvisoryDashboard() {
         diseaseHistory: ["Gray Leaf Spot", "Common Rust"],
       });
       setAdvisoryData(result);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching advisory:", err);
-      if (err.message?.includes('429') || err.message?.includes('quota')) {
+      if (err instanceof Error && (err.message.includes('429') || err.message.includes('quota'))) {
         setError("Intelligence Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
         setError("Unable to synthesize environmental telemetry. Please check your connection.");
