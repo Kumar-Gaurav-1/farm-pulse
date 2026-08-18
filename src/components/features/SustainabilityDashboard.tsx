@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { ApiServices } from '@/lib/api-services';
+import { ApiServices, ComplianceStandards } from '@/lib/api-services';
 import { 
   AreaChart, 
   Area, 
@@ -28,7 +28,7 @@ const chartData = [
 
 export function SustainabilityDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
-  const [compliance, setCompliance] = useState<any>(null);
+  const [compliance, setCompliance] = useState<ComplianceStandards | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
