@@ -1,0 +1,3 @@
+## 2025-02-23 - [Promise Caching for Component Mounts]
+**Learning:** In Next.js applications where complex components are frequently mounted and unmounted (e.g., via tab switching), storing the raw API response within component state causes redundant network calls on every mount. While context or global state can solve this, they can introduce significant boilerplate.
+**Action:** When a global state manager is absent or overkill, use a lightweight, module-level variable outside the component to cache the `Promise` of the expensive operation. This safely handles concurrent request de-duplication across rapid remounts and is easy to implement. Always ensure there is a mechanism to clear this cache on error or bypass it for manual user refreshes.
