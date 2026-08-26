@@ -1,0 +1,3 @@
+## 2023-10-27 - Module-level Promise Caching for Tabs
+**Learning:** When building complex dashboards in Next.js/React where users rapidly switch between tabs (causing unmounts/remounts), expensive API calls (like Genkit AI synthesis) can be triggered redundantly if data is only stored in component state without a global state manager (like Redux or React Query).
+**Action:** Implement a lightweight, module-level Promise cache (e.g., `let cache = Promise.all(...)`) outside the component scope to ensure in-flight or resolved requests are shared across remounts, significantly reducing backend load and improving perceived performance. Always include a mechanism to clear this cache on error to prevent indefinite blocking of future successful requests.
