@@ -1,0 +1,3 @@
+## 2024-08-27 - [Module-Level Promise Caching]
+**Learning:** In Next.js client components, switching tabs can trigger component unmounts and remounts. If those components fetch expensive API calls on mount, it creates redundant network requests.
+**Action:** Implement module-level Promise caching (outside the component scope) for these expensive API calls. This allows subsequent component mounts to instantly resolve the existing Promise instead of initiating a new network request, drastically reducing redundant calls. Remember to allow a bypass parameter (`forceRefresh`) for manual user updates and always clear the cache on Promise rejection so it doesn't get stuck in a failed state.

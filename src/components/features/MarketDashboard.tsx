@@ -24,6 +24,11 @@ import { Button } from '@/components/ui/button';
 import { marketTrendSynthesis, type MarketTrendSynthesisOutput } from '@/ai/flows/market-trend-synthesis-flow';
 import { ApiServices, type CurrencyImpact, type MarketCalendarEvent } from '@/lib/api-services';
 
+// Module-level cache to prevent redundant API calls on remounts
+let marketCachePromise: Promise<[MarketTrendSynthesisOutput, CurrencyImpact, MarketCalendarEvent[]]> | null = null;
+let marketCacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export function MarketDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,24 +36,34 @@ export function MarketDashboard() {
   const [currency, setCurrency] = useState<CurrencyImpact | null>(null);
   const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>([]);
 
-  const fetchMarketIntelligence = async () => {
+  const fetchMarketIntelligence = async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
     try {
-      const [synth, fx, cal] = await Promise.all([
-        marketTrendSynthesis({
-          cropType: "Wheat & Soybeans",
-          location: "United States (Midwest)",
-          recentMarketNews: "Exports to Europe increasing due to regional shortage. Logistics costs stabilizing."
-        }),
-        ApiServices.getExchangeRates('USD', 'EUR'),
-        ApiServices.getDeadlines()
-      ]);
+      const now = Date.now();
+
+      // If forcing refresh or cache is expired/missing, fetch new data
+      if (forceRefresh || !marketCachePromise || now - marketCacheTimestamp > CACHE_DURATION) {
+        marketCachePromise = Promise.all([
+          marketTrendSynthesis({
+            cropType: "Wheat & Soybeans",
+            location: "United States (Midwest)",
+            recentMarketNews: "Exports to Europe increasing due to regional shortage. Logistics costs stabilizing."
+          }),
+          ApiServices.getExchangeRates('USD', 'EUR'),
+          ApiServices.getDeadlines()
+        ]);
+        marketCacheTimestamp = now;
+      }
+
+      const [synth, fx, cal] = await marketCachePromise;
       setMarketData(synth);
       setCurrency(fx);
       setDeadlines(cal);
     } catch (err: any) {
       console.error("Error fetching market intelligence:", err);
+      // Clear cache on error so next attempt tries again
+      marketCachePromise = null;
       if (err.message?.includes('429') || err.message?.includes('quota')) {
         setError("Market Analysis Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
@@ -79,7 +94,7 @@ export function MarketDashboard() {
                 </div>
               </div>
               {!error && (
-                <Button variant="outline" onClick={fetchMarketIntelligence} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
+                <Button variant="outline" onClick={() => fetchMarketIntelligence(true)} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
                   {loading ? <RefreshCcw className="w-4 h-4 animate-spin mr-3" /> : null}
                   Sync Streams
                 </Button>
@@ -101,7 +116,7 @@ export function MarketDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchMarketIntelligence} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchMarketIntelligence(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Analysis Stream
                  </Button>
               </div>
