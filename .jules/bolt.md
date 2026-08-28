@@ -1,0 +1,3 @@
+## 2024-10-18 - Optimize Category Counts with useMemo and reduce
+**Learning:** In React components rendering dashboards (e.g., AlertCenter), computing aggregate counts across multiple categories using repeated inline `.filter()` calls within JSX causes O(C * N) iteration on every render (where C is the number of categories and N is the number of items). This can cause noticeable slowdowns during frequent state changes (e.g., filtering or dismissing alerts).
+**Action:** Instead of calling `.filter().length` repeatedly within JSX, use `Array.prototype.reduce()` to aggregate all counts in a single pass (O(N)), and wrap this computation in `useMemo` with the appropriate dependencies so it only re-runs when the underlying data changes.
