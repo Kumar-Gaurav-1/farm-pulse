@@ -18,40 +18,67 @@ import { Button } from '@/components/ui/button';
 import { contextualCropWeatherAdvisory, type ContextualCropWeatherAdvisoryOutput } from '@/ai/flows/contextual-crop-weather-advisory';
 import { Progress } from '@/components/ui/progress';
 
+// ⚡ Bolt Optimization:
+// Contextual crop advisories trigger expensive LLM completions.
+// Lifting the state to a module-level cache preserves the result across tab unmounts.
+// Metric: Saves 1 long-running AI API request per component remount cycle.
+let cachedAdvisoryData: ContextualCropWeatherAdvisoryOutput | null = null;
+let advisoryFetchPromise: Promise<void> | null = null;
+
 export function AdvisoryDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [advisoryData, setAdvisoryData] = useState<ContextualCropWeatherAdvisoryOutput | null>(null);
+  const [advisoryData, setAdvisoryData] = useState<ContextualCropWeatherAdvisoryOutput | null>(cachedAdvisoryData);
 
-  const fetchAdvisory = async () => {
+  const fetchAdvisory = async (forceRefresh = false) => {
+    // ⚡ Bolt Optimization: Use cached data if available instead of re-fetching on mount.
+    if (!forceRefresh && (cachedAdvisoryData || advisoryFetchPromise)) {
+       if (advisoryFetchPromise) {
+          setLoading(true);
+          try {
+             await advisoryFetchPromise;
+             setAdvisoryData(cachedAdvisoryData);
+          } catch (e) {} finally {
+             setLoading(false);
+          }
+       }
+       return;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const result = await contextualCropWeatherAdvisory({
-        location: "Central Valley, Kansas",
-        cropType: "Corn (Yellow Dent)",
-        growthStage: "Vegetative (V8)",
-        currentTemperature: 28,
-        currentHumidity: 65,
-        currentPrecipitation: 0,
-        currentWindSpeed: 12,
-        dailyForecast: "Partly cloudy, high of 32C, 10% chance of isolated showers in evening.",
-        upcomingForecast: "Rising temperatures over next 48h, reaching 35C. Dry conditions prevailing.",
-        soilMoisture: 42,
-        previous24hrRainfall: 2,
-        diseaseHistory: ["Gray Leaf Spot", "Common Rust"],
-      });
+
+    advisoryFetchPromise = contextualCropWeatherAdvisory({
+      location: "Central Valley, Kansas",
+      cropType: "Corn (Yellow Dent)",
+      growthStage: "Vegetative (V8)",
+      currentTemperature: 28,
+      currentHumidity: 65,
+      currentPrecipitation: 0,
+      currentWindSpeed: 12,
+      dailyForecast: "Partly cloudy, high of 32C, 10% chance of isolated showers in evening.",
+      upcomingForecast: "Rising temperatures over next 48h, reaching 35C. Dry conditions prevailing.",
+      soilMoisture: 42,
+      previous24hrRainfall: 2,
+      diseaseHistory: ["Gray Leaf Spot", "Common Rust"],
+    }).then(result => {
+      cachedAdvisoryData = result;
       setAdvisoryData(result);
-    } catch (err: any) {
+      advisoryFetchPromise = null; // Clear the tracking promise on success
+    }).catch(err => {
+      cachedAdvisoryData = null;
+      advisoryFetchPromise = null;
       console.error("Error fetching advisory:", err);
       if (err.message?.includes('429') || err.message?.includes('quota')) {
         setError("Intelligence Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
         setError("Unable to synthesize environmental telemetry. Please check your connection.");
       }
-    } finally {
+    }).finally(() => {
       setLoading(false);
-    }
+    });
+
+    await advisoryFetchPromise;
   };
 
   useEffect(() => {
@@ -98,7 +125,7 @@ export function AdvisoryDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchAdvisory} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchAdvisory(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Intelligence Feed
                  </Button>
               </div>
