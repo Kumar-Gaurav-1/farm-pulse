@@ -1,0 +1,3 @@
+## 2024-08-30 - [Next.js Tab Switch API Redundancy]
+**Learning:** In Next.js applications, switching tabs that unmount and remount components triggering expensive multi-API calls (e.g., using `Promise.all` inside `useEffect`) results in redundant network requests and performance degradation, particularly if the data is semi-static. Standard state variables are lost on unmount.
+**Action:** Implement module-level variables (a cache map or simple variables like `cachedMarketData` and `marketFetchPromise`) outside the component lifecycle to cache both the resolved data and the active promise. This prevents duplicate fetches when components rapidly unmount/remount, while still allowing a forced refresh parameter for manual syncs.

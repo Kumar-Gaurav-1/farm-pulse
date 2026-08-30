@@ -24,39 +24,76 @@ import { Button } from '@/components/ui/button';
 import { marketTrendSynthesis, type MarketTrendSynthesisOutput } from '@/ai/flows/market-trend-synthesis-flow';
 import { ApiServices, type CurrencyImpact, type MarketCalendarEvent } from '@/lib/api-services';
 
+// ⚡ Bolt Optimization:
+// Market intelligence queries trigger multiple expensive backend/LLM operations.
+// Lift state out of React component lifecycle to act as a module-level cache.
+// Metric: Eliminates 3 concurrent network requests on every remount (e.g., when switching tabs).
+let cachedMarketData: MarketTrendSynthesisOutput | null = null;
+let cachedCurrency: CurrencyImpact | null = null;
+let cachedDeadlines: MarketCalendarEvent[] | null = null;
+let marketFetchPromise: Promise<void> | null = null;
+
 export function MarketDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [marketData, setMarketData] = useState<MarketTrendSynthesisOutput | null>(null);
-  const [currency, setCurrency] = useState<CurrencyImpact | null>(null);
-  const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>([]);
+  const [marketData, setMarketData] = useState<MarketTrendSynthesisOutput | null>(cachedMarketData);
+  const [currency, setCurrency] = useState<CurrencyImpact | null>(cachedCurrency);
+  const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>(cachedDeadlines || []);
 
-  const fetchMarketIntelligence = async () => {
+  const fetchMarketIntelligence = async (forceRefresh = false) => {
+    // ⚡ Bolt Optimization: Skip fetch if already fetching or if valid cache exists.
+    if (!forceRefresh && (cachedMarketData || marketFetchPromise)) {
+       if (marketFetchPromise) {
+          setLoading(true);
+          try {
+             await marketFetchPromise;
+             setMarketData(cachedMarketData);
+             setCurrency(cachedCurrency);
+             setDeadlines(cachedDeadlines || []);
+          } catch (e) {
+             // Let the active fetch promise handle errors natively.
+          } finally {
+             setLoading(false);
+          }
+       }
+       return;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const [synth, fx, cal] = await Promise.all([
-        marketTrendSynthesis({
-          cropType: "Wheat & Soybeans",
-          location: "United States (Midwest)",
-          recentMarketNews: "Exports to Europe increasing due to regional shortage. Logistics costs stabilizing."
-        }),
-        ApiServices.getExchangeRates('USD', 'EUR'),
-        ApiServices.getDeadlines()
-      ]);
+
+    marketFetchPromise = Promise.all([
+      marketTrendSynthesis({
+        cropType: "Wheat & Soybeans",
+        location: "United States (Midwest)",
+        recentMarketNews: "Exports to Europe increasing due to regional shortage. Logistics costs stabilizing."
+      }),
+      ApiServices.getExchangeRates('USD', 'EUR'),
+      ApiServices.getDeadlines()
+    ]).then(([synth, fx, cal]) => {
+      cachedMarketData = synth;
+      cachedCurrency = fx;
+      cachedDeadlines = cal;
       setMarketData(synth);
       setCurrency(fx);
       setDeadlines(cal);
-    } catch (err: any) {
+      marketFetchPromise = null; // Clear promise on success to prevent unnecessary loading states on remount
+    }).catch((err: any) => {
+      cachedMarketData = null;
+      cachedCurrency = null;
+      cachedDeadlines = null;
+      marketFetchPromise = null;
       console.error("Error fetching market intelligence:", err);
       if (err.message?.includes('429') || err.message?.includes('quota')) {
         setError("Market Analysis Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
         setError("Unable to synthesize global economic vectors. Please check your connection.");
       }
-    } finally {
+    }).finally(() => {
       setLoading(false);
-    }
+    });
+
+    await marketFetchPromise;
   };
 
   useEffect(() => {
@@ -79,7 +116,7 @@ export function MarketDashboard() {
                 </div>
               </div>
               {!error && (
-                <Button variant="outline" onClick={fetchMarketIntelligence} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
+                <Button variant="outline" onClick={() => fetchMarketIntelligence(true)} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
                   {loading ? <RefreshCcw className="w-4 h-4 animate-spin mr-3" /> : null}
                   Sync Streams
                 </Button>
@@ -101,7 +138,7 @@ export function MarketDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchMarketIntelligence} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchMarketIntelligence(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Analysis Stream
                  </Button>
               </div>
