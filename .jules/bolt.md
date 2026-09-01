@@ -1,0 +1,3 @@
+## 2024-09-01 - [Module-Level Promise Caching for Dashboard Components]
+**Learning:** Component unmounting/remounting across route changes (like navigating between tabs in this app) leads to repeated expensive network requests (e.g. AI `marketTrendSynthesis`) if not properly handled since state is tied to component lifecycle.
+**Action:** Used module-level Promise caching outside the React component scope to ensure expensive API requests are initiated only once and their pending/resolved states persist across tab switching. Ensured there is a force refresh mechanism and the cache is cleared upon failure so the UI isn't blocked.
