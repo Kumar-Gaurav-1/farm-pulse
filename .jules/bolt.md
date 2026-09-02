@@ -1,0 +1,4 @@
+Date: 2024-05-18
+Title: Module-Level Promise Cache for API Calls
+Learning: When caching expensive API calls across component remounts in React without a global state manager, use a module-level variable outside the component to store the result. Additionally, when dealing with concurrent requests on initial mount, caching the `Promise` itself rather than just the resolved data correctly handles concurrent requests and prevents redundant network calls. Always ensure there is a mechanism to bypass the cache when user-triggered manual refresh actions occur. Finally, handle promise rejection by clearing the cache, preventing failed network requests from being cached indefinitely.
+Action: Implemented a module-level Promise cache in `api-services.ts` for `getExchangeRates`, along with a `forceRefresh` option for manual user refreshes.
