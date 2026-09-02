@@ -1,0 +1,3 @@
+## 2026-09-02 - Expensive AI calls on component remount
+**Learning:** Found that `AdvisoryDashboard` and `MarketDashboard` trigger their respective AI flow functions (`contextualCropWeatherAdvisory` and `marketTrendSynthesis`) every time the component mounts. In a Next.js app with tabbed navigation where these components are conditionally rendered, this leads to redundant, expensive AI API calls every time the user switches tabs, causing slow UI, potential rate limiting (429s), and unnecessary costs.
+**Action:** Implement a module-level cache for these expensive, semi-static AI responses to prevent redundant network calls across unmounts/remounts, while maintaining a manual refresh capability to bypass the cache when needed.

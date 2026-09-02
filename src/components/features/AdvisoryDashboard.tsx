@@ -18,16 +18,26 @@ import { Button } from '@/components/ui/button';
 import { contextualCropWeatherAdvisory, type ContextualCropWeatherAdvisoryOutput } from '@/ai/flows/contextual-crop-weather-advisory';
 import { Progress } from '@/components/ui/progress';
 
+// ⚡ Bolt Performance Optimization: Module-level cache to prevent redundant AI API calls across component remounts
+let cachedAdvisoryPromise: Promise<ContextualCropWeatherAdvisoryOutput> | null = null;
+
 export function AdvisoryDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [advisoryData, setAdvisoryData] = useState<ContextualCropWeatherAdvisoryOutput | null>(null);
 
-  const fetchAdvisory = async () => {
+  const fetchAdvisory = async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await contextualCropWeatherAdvisory({
+      if (!forceRefresh && cachedAdvisoryPromise) {
+        const result = await cachedAdvisoryPromise;
+        setAdvisoryData(result);
+        setLoading(false);
+        return;
+      }
+
+      cachedAdvisoryPromise = contextualCropWeatherAdvisory({
         location: "Central Valley, Kansas",
         cropType: "Corn (Yellow Dent)",
         growthStage: "Vegetative (V8)",
@@ -41,10 +51,14 @@ export function AdvisoryDashboard() {
         previous24hrRainfall: 2,
         diseaseHistory: ["Gray Leaf Spot", "Common Rust"],
       });
+
+      const result = await cachedAdvisoryPromise;
       setAdvisoryData(result);
     } catch (err: any) {
+      cachedAdvisoryPromise = null;
       console.error("Error fetching advisory:", err);
-      if (err.message?.includes('429') || err.message?.includes('quota')) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes('429') || errorMessage.includes('quota')) {
         setError("Intelligence Engine is currently busy handling high regional demand. Please try again in a moment.");
       } else {
         setError("Unable to synthesize environmental telemetry. Please check your connection.");
@@ -98,7 +112,7 @@ export function AdvisoryDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchAdvisory} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchAdvisory(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Intelligence Feed
                  </Button>
               </div>
