@@ -56,7 +56,16 @@ export const ApiServices = {
    * Frankfurter API for currency exchange rates
    */
   async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const ALLOWED_CURRENCIES = new Set([
+      'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP',
+      'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JPY', 'KRW', 'MXN', 'MYR',
+      'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR'
+    ]);
+
     try {
+      if (!ALLOWED_CURRENCIES.has(from) || !ALLOWED_CURRENCIES.has(to)) {
+        throw new Error('Invalid currency code provided');
+      }
       const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
       const data = await res.json();
       return {
