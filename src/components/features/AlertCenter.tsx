@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Bell, 
   CloudRain, 
@@ -73,6 +73,13 @@ export function AlertCenter() {
   const filteredNotifications = filter === 'all' 
     ? notifications 
     : notifications.filter(n => !n.read);
+
+  const categoryCounts = useMemo(() => {
+    return notifications.reduce((acc, n) => {
+      acc[n.type] = (acc[n.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [notifications]);
 
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
@@ -192,10 +199,10 @@ export function AlertCenter() {
             </CardHeader>
             <CardContent className="p-0 space-y-6">
               {[
-                { label: 'Weather', count: notifications.filter(n => n.type === 'weather').length, color: 'bg-blue-500' },
-                { label: 'Field Health', count: notifications.filter(n => n.type === 'field').length, color: 'bg-red-500' },
-                { label: 'Market Signals', count: notifications.filter(n => n.type === 'market').length, color: 'bg-orange-500' },
-                { label: 'System Logs', count: notifications.filter(n => n.type === 'system').length, color: 'bg-primary' },
+                { label: 'Weather', count: categoryCounts['weather'] || 0, color: 'bg-blue-500' },
+                { label: 'Field Health', count: categoryCounts['field'] || 0, color: 'bg-red-500' },
+                { label: 'Market Signals', count: categoryCounts['market'] || 0, color: 'bg-orange-500' },
+                { label: 'System Logs', count: categoryCounts['system'] || 0, color: 'bg-primary' },
               ].map((cat, i) => (
                 <div key={i} className="flex items-center justify-between p-6 bg-muted/20 rounded-[1.75rem] hover:bg-white transition-all cursor-pointer group">
                   <div className="flex items-center gap-4">
