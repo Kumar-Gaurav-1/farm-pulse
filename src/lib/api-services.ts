@@ -57,6 +57,12 @@ export const ApiServices = {
    */
   async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
     try {
+      // Validate currency codes to prevent SSRF
+      const isValidCurrency = (code: string) => /^[A-Z]{3}$/.test(code);
+      if (!isValidCurrency(from) || !isValidCurrency(to)) {
+        throw new Error('Invalid currency code');
+      }
+
       const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
       const data = await res.json();
       return {
