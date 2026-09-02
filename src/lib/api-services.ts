@@ -57,16 +57,23 @@ export const ApiServices = {
    */
   async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
     try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+      if (!/^[A-Z]{3}$/i.test(from) || !/^[A-Z]{3}$/i.test(to)) {
+        throw new Error('Invalid currency code');
+      }
+
+      const safeFrom = from.toUpperCase();
+      const safeTo = to.toUpperCase();
+
+      const res = await fetch(`https://api.frankfurter.app/latest?from=${safeFrom}&to=${safeTo}`);
       const data = await res.json();
       return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
+        rate: data.rates[safeTo],
+        base: safeFrom,
+        target: safeTo,
         trend: 'up'
       };
     } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+      return { rate: 0.92, base: from.toUpperCase(), target: to.toUpperCase(), trend: 'stable' };
     }
   },
 
