@@ -24,6 +24,12 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+const ALLOWED_CURRENCIES = new Set([
+  'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP',
+  'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JPY', 'KRW', 'MXN', 'MYR',
+  'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR'
+]);
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -56,13 +62,20 @@ export const ApiServices = {
    * Frankfurter API for currency exchange rates
    */
   async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const fromUpper = from.toUpperCase();
+    const toUpper = to.toUpperCase();
+
+    if (!ALLOWED_CURRENCIES.has(fromUpper) || !ALLOWED_CURRENCIES.has(toUpper)) {
+      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+    }
+
     try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+      const res = await fetch(`https://api.frankfurter.app/latest?from=${fromUpper}&to=${toUpper}`);
       const data = await res.json();
       return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
+        rate: data.rates[toUpper],
+        base: fromUpper,
+        target: toUpper,
         trend: 'up'
       };
     } catch (e) {
