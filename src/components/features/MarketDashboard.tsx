@@ -31,7 +31,7 @@ export function MarketDashboard() {
   const [currency, setCurrency] = useState<CurrencyImpact | null>(null);
   const [deadlines, setDeadlines] = useState<MarketCalendarEvent[]>([]);
 
-  const fetchMarketIntelligence = async () => {
+  const fetchMarketIntelligence = async (isRefresh: boolean = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -41,7 +41,7 @@ export function MarketDashboard() {
           location: "United States (Midwest)",
           recentMarketNews: "Exports to Europe increasing due to regional shortage. Logistics costs stabilizing."
         }),
-        ApiServices.getExchangeRates('USD', 'EUR'),
+        ApiServices.getExchangeRates('USD', 'EUR', isRefresh),
         ApiServices.getDeadlines()
       ]);
       setMarketData(synth);
@@ -79,7 +79,7 @@ export function MarketDashboard() {
                 </div>
               </div>
               {!error && (
-                <Button variant="outline" onClick={fetchMarketIntelligence} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
+                <Button variant="outline" onClick={() => fetchMarketIntelligence(true)} disabled={loading} className="rounded-full border-muted bg-white/50 backdrop-blur font-black uppercase text-[10px] tracking-widest px-8 h-12">
                   {loading ? <RefreshCcw className="w-4 h-4 animate-spin mr-3" /> : null}
                   Sync Streams
                 </Button>
@@ -101,7 +101,7 @@ export function MarketDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchMarketIntelligence} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchMarketIntelligence(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Analysis Stream
                  </Button>
               </div>
