@@ -24,6 +24,13 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+interface CacheEntry<T> {
+  promise: Promise<T> | null;
+  data: T | null;
+}
+
+const exchangeRatesCache: Map<string, CacheEntry<CurrencyImpact>> = new Map();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +62,54 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  async getExchangeRates(from: string = 'USD', to: string = 'EUR', forceRefresh: boolean = false): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+
+    if (!exchangeRatesCache.has(cacheKey)) {
+      exchangeRatesCache.set(cacheKey, { promise: null, data: null });
     }
+
+    const entry = exchangeRatesCache.get(cacheKey)!;
+
+    if (forceRefresh) {
+      entry.data = null;
+      entry.promise = null;
+    }
+
+    if (entry.data) {
+      return entry.data;
+    }
+
+    if (entry.promise) {
+      return entry.promise;
+    }
+
+    const fetchPromise = (async () => {
+      try {
+        const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+        if (!res.ok) {
+           throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up'
+        };
+        entry.data = result;
+        return result;
+      } catch (e) {
+        exchangeRatesCache.delete(cacheKey); // clear failed promise so it can be retried
+        const fallback: CurrencyImpact = { rate: 0.92, base: from, target: to, trend: 'stable' };
+        return fallback;
+      } finally {
+        entry.promise = null; // Clear active promise so subsequent calls read from data
+      }
+    })();
+
+    entry.promise = fetchPromise;
+    return fetchPromise;
   },
 
   /**
