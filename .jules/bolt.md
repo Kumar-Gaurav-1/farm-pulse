@@ -1,0 +1,3 @@
+## 2024-11-20 - [Implement module-level Promise cache]
+**Learning:** When implementing a module-level Promise cache for API requests (like fetch) to optimize remounts, you must ensure that fetch errors are properly caught and handled. Since fetch only rejects on network errors, you must explicitly check `!res.ok` and throw. Crucially, the active promise entry must be cleared upon rejection to prevent indefinite caching of a failure, and also removed upon success so future remounts don't wait on a microtask delay when data is already cached.
+**Action:** Always implement a robust error handling flow in Promise caches: explicit HTTP error checks, separate active promise and resolved data storage, and guaranteed cleanup of the active promise entry.
