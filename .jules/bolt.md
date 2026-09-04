@@ -1,0 +1,3 @@
+## 2023-10-27 - [Module-Level Promise Caching]
+**Learning:** In Next.js/React applications where components fetch data on mount but are frequently remounted (like in tabbed dashboards), standard local state fetching leads to redundant API calls. Caching just the data isn't enough to prevent concurrent fetch requests if the component remounts before the first request finishes.
+**Action:** Implement a module-level variable to cache the active fetch Promise itself, returning that Promise to any subsequent callers until it resolves. Always clear the Promise reference on error to prevent caching failed states.
