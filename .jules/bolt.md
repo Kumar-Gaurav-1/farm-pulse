@@ -1,0 +1,3 @@
+## 2026-09-05 - [Module-Level Promise Caching for API Requests]
+**Learning:** Components fetching data on mount often trigger redundant network calls when remounted or loaded concurrently. Standard data caching only helps after the request resolves. Caching the `Promise` itself at the module level correctly deduplicates concurrent identical API requests during component loading phases.
+**Action:** When creating central API service modules that React components call on mount, implement a module-level cache that stores the active `Promise` for the fetch operation. Ensure to remove the cached promise on rejection so subsequent calls can retry instead of being blocked indefinitely.
