@@ -1,0 +1,4 @@
+Date: 2024-05-24
+Title: Optimize API request latency across React component remounts
+Learning: Repeated static or semi-static API requests (like currency exchange rates) that are executed inside React components (e.g. `useEffect` on mount) can cause significant UI blocking and redundant network usage during rapid page transitions or remounts.
+Action: Implemented a centralized, module-level two-tier Promise/Data cache (`Map` based) in the `ApiServices` singleton. By caching the active promise, concurrent remounts tie into the ongoing request instead of spawning new ones. Once resolved, the data is served instantly (<0.01ms) from memory. Added a `forceRefresh` parameter to allow manual overrides when user action demands real-time data.

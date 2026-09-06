@@ -55,19 +55,54 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  async getExchangeRates(from: string = 'USD', to: string = 'EUR', forceRefresh: boolean = false): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+
+    // Initialize cache structures if they don't exist
+    if (!(this as any)._exchangeRatesDataCache) {
+      (this as any)._exchangeRatesDataCache = new Map<string, CurrencyImpact>();
+      (this as any)._exchangeRatesPromiseCache = new Map<string, Promise<CurrencyImpact>>();
     }
+
+    const dataCache = (this as any)._exchangeRatesDataCache as Map<string, CurrencyImpact>;
+    const promiseCache = (this as any)._exchangeRatesPromiseCache as Map<string, Promise<CurrencyImpact>>;
+
+    if (forceRefresh) {
+      dataCache.delete(cacheKey);
+      promiseCache.delete(cacheKey);
+    } else {
+      if (dataCache.has(cacheKey)) {
+        return dataCache.get(cacheKey)!;
+      }
+      if (promiseCache.has(cacheKey)) {
+        return promiseCache.get(cacheKey)!;
+      }
+    }
+
+    const promise = (async () => {
+      try {
+        const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        dataCache.set(cacheKey, result);
+        return result;
+      } catch (e) {
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      } finally {
+        promiseCache.delete(cacheKey);
+      }
+    })();
+
+    promiseCache.set(cacheKey, promise);
+    return promise;
   },
 
   /**
