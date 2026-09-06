@@ -1,0 +1,4 @@
+Date: 2024-05-18
+Title: Optimize repetitive API requests with module-level promise caching
+Learning: Fetching identical static or semi-static data on mount or during concurrent requests (e.g. `Promise.all` calling the same API) causes unnecessary network overhead and delays loading. React components repeatedly triggering these APIs across unmounts/remounts exacerbate the issue.
+Action: Implemented a module-level Promise cache for `fetch` requests using a JavaScript `Map`. This ensures concurrent identical requests share the same promise and subsequent requests return instantly from cache. Included a `forceRefresh` parameter to allow bypassing the cache for user-triggered manual refresh actions, and ensured the cached promise is removed upon rejection to prevent indefinite caching of failed requests.
