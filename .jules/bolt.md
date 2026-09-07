@@ -1,0 +1,3 @@
+## 2024-05-24 - [Cache Network Calls for Performance]
+**Learning:** Calling external APIs (like getExchangeRates) repeatedly during component remounts creates significant network latency overhead. Caching the unresolved Promise directly prevents redundant parallel fetches effectively.
+**Action:** Always implement a module-level Promise cache for read-only external API calls when they are frequently requested in a short timeframe.
