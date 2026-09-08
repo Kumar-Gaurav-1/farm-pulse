@@ -24,6 +24,9 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+const exchangeRatesCache = new Map<string, CurrencyImpact>();
+const activeExchangeRatesPromises = new Map<string, Promise<CurrencyImpact>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +58,41 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR', forceRefresh: boolean = false): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+
+    if (!forceRefresh) {
+      if (exchangeRatesCache.has(cacheKey)) {
+        return Promise.resolve(exchangeRatesCache.get(cacheKey)!);
+      }
+      if (activeExchangeRatesPromises.has(cacheKey)) {
+        return activeExchangeRatesPromises.get(cacheKey)!;
+      }
     }
+
+    const fetchPromise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        exchangeRatesCache.set(cacheKey, result);
+        activeExchangeRatesPromises.delete(cacheKey);
+        return result;
+      })
+      .catch(() => {
+        activeExchangeRatesPromises.delete(cacheKey);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    activeExchangeRatesPromises.set(cacheKey, fetchPromise);
+    return fetchPromise;
   },
 
   /**
