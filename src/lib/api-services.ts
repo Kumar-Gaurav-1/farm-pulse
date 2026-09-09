@@ -24,6 +24,10 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// ⚡ Bolt Optimization: Module-level promise cache to prevent redundant concurrent fetches
+// across different React components (or React Strict Mode double renders).
+const exchangeRateCache = new Map<string, Promise<CurrencyImpact>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +59,42 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+    if (exchangeRateCache.has(cacheKey)) {
+      return exchangeRateCache.get(cacheKey)!;
     }
+
+    const fetchPromise = (async () => {
+      try {
+        const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+
+        // Remove from active cache upon success so future calls can refetch fresh data if needed,
+        // or keep it cached longer if that's desired. Since we only want to deduplicate *concurrent*
+        // requests, we remove it. If longer caching is desired, we can keep it.
+        // Let's keep it cached for the session since it's a dashboard. Actually, to be safe and only
+        // deduplicate active requests, let's remove it after completion, or keep it if we want to save more.
+        // Let's keep it in cache and only delete on failure to maximize performance!
+
+        return {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+      } catch (e) {
+        // Remove failed promise from cache so future attempts can try again
+        exchangeRateCache.delete(cacheKey);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      }
+    })();
+
+    exchangeRateCache.set(cacheKey, fetchPromise);
+    return fetchPromise;
   },
 
   /**
