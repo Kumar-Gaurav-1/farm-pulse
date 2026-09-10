@@ -24,6 +24,10 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// Module-level caches for exchange rates to prevent redundant network calls
+const exchangeRateCache = new Map<string, CurrencyImpact>();
+const activeExchangeRatePromises = new Map<string, Promise<CurrencyImpact>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -54,20 +58,50 @@ export const ApiServices = {
 
   /**
    * Frankfurter API for currency exchange rates
+   * Optimized with promise caching and request deduplication to prevent
+   * multiple identical network calls during concurrent component mounts.
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}_${to}`;
+
+    // 1. Return from cache if already resolved
+    if (exchangeRateCache.has(cacheKey)) {
+      return Promise.resolve(exchangeRateCache.get(cacheKey)!);
     }
+
+    // 2. Return in-flight promise if request is already ongoing
+    if (activeExchangeRatePromises.has(cacheKey)) {
+      return activeExchangeRatePromises.get(cacheKey)!;
+    }
+
+    // 3. Initiate new request and cache the promise
+    const promise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        // Cache successful result and remove from active promises
+        exchangeRateCache.set(cacheKey, result);
+        activeExchangeRatePromises.delete(cacheKey);
+        return result;
+      })
+      .catch(() => {
+        // Clear active promise on error to allow future retries, return fallback
+        activeExchangeRatePromises.delete(cacheKey);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    activeExchangeRatePromises.set(cacheKey, promise);
+    return promise;
   },
 
   /**
