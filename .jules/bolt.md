@@ -1,0 +1,3 @@
+## 2024-05-24 - Promise Memoization Request Coalescing
+**Learning:** In dashboards rendering multiple complex components simultaneously (like `MarketDashboard` triggering `getExchangeRates`), identical external API calls can fire concurrently. Caching the resolved value isn't enough to stop the concurrent burst; you must cache the `Promise` itself so concurrent callers await the exact same network request.
+**Action:** When adding caching to network calls heavily used on application initialization, cache the pending Promise immediately before the network call completes, and ensure the cache entry is removed on rejection to allow retries.
