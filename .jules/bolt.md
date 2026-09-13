@@ -1,0 +1,3 @@
+## 2026-09-13 - Avoid microtask overhead in Promise caches
+**Learning:** Returning a cached Promise directly by omitting the outer `async` wrapper avoids an extra microtask tick. Furthermore, removing the active fetch promise entry (e.g., using `Map.delete`) immediately upon resolution ensures subsequent calls get the raw data from `Promise.resolve` and avoids holding onto a stale, already-resolved network Promise in memory unnecessarily.
+**Action:** When implementing module-level caching for asynchronous requests, separate the promise state from the resolved data state, omit the `async` wrapper, and explicitly delete the active promise entry upon settlement.
