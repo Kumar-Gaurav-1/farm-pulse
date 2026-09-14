@@ -1,0 +1,3 @@
+## 2025-02-23 - Caching Promises requires HTTP error handling
+**Learning:** When implementing a module-level Promise cache using `fetch`, the cache can become polluted with failed promises because `fetch` only rejects on network failures, not HTTP errors (like 404 or 500). If you don't explicitly check `!res.ok` and throw an error, a failed response might get cached and prevent components from retrying.
+**Action:** Always check `!res.ok` and throw an error inside the `then` block of a cached fetch promise. Additionally, always add a `catch` block that clears the cache key before returning a fallback, ensuring the failed request doesn't block future successful retries.
