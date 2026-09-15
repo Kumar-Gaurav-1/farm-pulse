@@ -1,0 +1,3 @@
+## 2024-05-18 - Promise Cache for External APIs
+**Learning:** Naive `fetch` calls without caching can cause unnecessary network overhead in Next.js applications, especially if triggered frequently across re-renders or concurrent requests. Furthermore, `fetch` only rejects on network errors, so `!res.ok` must be manually checked to catch HTTP errors.
+**Action:** When creating service layer methods for external APIs, implement a module-level `Map` to cache the `Promise` returned by the fetch operation, instead of just the result. Ensure the cache entry is deleted if the promise rejects, preventing failed requests from poisoning the cache.
