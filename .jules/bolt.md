@@ -1,0 +1,3 @@
+## 2025-02-17 - Expensive conditionally rendered server actions
+**Learning:** In Next.js applications, conditionally rendered client components (like Dashboard tabs) will unmount when inactive. If these components unconditionally fetch expensive data (e.g. Genkit LLM Server Actions) in `useEffect` on mount, navigating between tabs will trigger duplicate, slow, and expensive API calls.
+**Action:** Always implement a client-side module-level cache (or similar caching strategy) for data fetched within `useEffect` hooks of conditionally rendered components, especially if the underlying fetch triggers a heavy backend process like an LLM flow.

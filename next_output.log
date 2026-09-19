@@ -1,0 +1,100 @@
+
+> nextn@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 1209ms
+ ⨯ Error [GenkitError]: FAILED_PRECONDITION: Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.
+For more details see https://genkit.dev/docs/plugins/google-genai/
+    at 65717 (.next/server/app/page.js:130:40673)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 90878 (.next/server/app/page.js:169:3999)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 61925 (.next/server/app/page.js:66:79017)
+    at Object.c [as require] (.next/server/webpack-runtime.js:1:143) {
+  source: undefined,
+  status: 'FAILED_PRECONDITION',
+  detail: undefined,
+  code: 400,
+  originalMessage: 'Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.\n' +
+    'For more details see https://genkit.dev/docs/plugins/google-genai/',
+  ignoreFailedSpan: true,
+  traceId: 'f563615549c73365c0cac6f869dce7c1',
+  digest: '3840684295'
+}
+ ⨯ Error [GenkitError]: FAILED_PRECONDITION: Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.
+For more details see https://genkit.dev/docs/plugins/google-genai/
+    at 65717 (.next/server/app/page.js:130:40673)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 90878 (.next/server/app/page.js:169:3999)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 61925 (.next/server/app/page.js:66:79017)
+    at Object.c [as require] (.next/server/webpack-runtime.js:1:143) {
+  source: undefined,
+  status: 'FAILED_PRECONDITION',
+  detail: undefined,
+  code: 400,
+  originalMessage: 'Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.\n' +
+    'For more details see https://genkit.dev/docs/plugins/google-genai/',
+  ignoreFailedSpan: true,
+  traceId: '1accf19e350ee0e4e3909598de3cd211',
+  digest: '3840684295'
+}
+ ⨯ Error [GenkitError]: FAILED_PRECONDITION: Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.
+For more details see https://genkit.dev/docs/plugins/google-genai/
+    at 65717 (.next/server/app/page.js:130:40673)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 90878 (.next/server/app/page.js:169:3999)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 61925 (.next/server/app/page.js:66:79017)
+    at Object.c [as require] (.next/server/webpack-runtime.js:1:143) {
+  source: undefined,
+  status: 'FAILED_PRECONDITION',
+  detail: undefined,
+  code: 400,
+  originalMessage: 'Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.\n' +
+    'For more details see https://genkit.dev/docs/plugins/google-genai/',
+  ignoreFailedSpan: true,
+  traceId: '2fd877fd4647e54fd17a2f0b6968bffc',
+  digest: '3840684295'
+}
+ ⨯ Error [GenkitError]: FAILED_PRECONDITION: Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.
+For more details see https://genkit.dev/docs/plugins/google-genai/
+    at 65717 (.next/server/app/page.js:130:40673)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 90878 (.next/server/app/page.js:169:3999)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 61925 (.next/server/app/page.js:66:79017)
+    at Object.c [as require] (.next/server/webpack-runtime.js:1:143) {
+  source: undefined,
+  status: 'FAILED_PRECONDITION',
+  detail: undefined,
+  code: 400,
+  originalMessage: 'Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.\n' +
+    'For more details see https://genkit.dev/docs/plugins/google-genai/',
+  ignoreFailedSpan: true,
+  traceId: '063f2b0c07834936d57fb9a9fff3ec5a',
+  digest: '3840684295'
+}
+ ⨯ Error [GenkitError]: FAILED_PRECONDITION: Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.
+For more details see https://genkit.dev/docs/plugins/google-genai/
+    at 65717 (.next/server/app/page.js:130:40673)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 90878 (.next/server/app/page.js:169:3999)
+    at c (.next/server/webpack-runtime.js:1:143)
+    at 61925 (.next/server/app/page.js:66:79017)
+    at Object.c [as require] (.next/server/webpack-runtime.js:1:143) {
+  source: undefined,
+  status: 'FAILED_PRECONDITION',
+  detail: undefined,
+  code: 400,
+  originalMessage: 'Please pass in the API key or set the GEMINI_API_KEY or GOOGLE_API_KEY environment variable.\n' +
+    'For more details see https://genkit.dev/docs/plugins/google-genai/',
+  ignoreFailedSpan: true,
+  traceId: '42ab3a9394f58adfc92a823e6012a67b',
+  digest: '3840684295'
+}
