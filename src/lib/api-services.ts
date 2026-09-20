@@ -24,6 +24,10 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// Module-level caches for API responses
+const exchangeRateCache = new Map<string, CurrencyImpact>();
+const activeExchangeRequests = new Map<string, Promise<CurrencyImpact>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -54,20 +58,49 @@ export const ApiServices = {
 
   /**
    * Frankfurter API for currency exchange rates
+   * Optimized with module-level Promise cache to prevent redundant network requests
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const key = `${from}-${to}`;
+
+    // Return cached data if available
+    if (exchangeRateCache.has(key)) {
+      return Promise.resolve(exchangeRateCache.get(key)!);
     }
+
+    // Return active promise if a request is already in flight
+    if (activeExchangeRequests.has(key)) {
+      return activeExchangeRequests.get(key)!;
+    }
+
+    // Initiate new request
+    const requestPromise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up'
+        };
+        // Cache the successful result
+        exchangeRateCache.set(key, result);
+        // Clean up the active request
+        activeExchangeRequests.delete(key);
+        return result;
+      })
+      .catch((e) => {
+        // Fallback on error
+        const result: CurrencyImpact = { rate: 0.92, base: from, target: to, trend: 'stable' };
+        // Do NOT cache the fallback to allow future retries, but clean up the active request
+        activeExchangeRequests.delete(key);
+        return result;
+      });
+
+    // Store the active promise
+    activeExchangeRequests.set(key, requestPromise);
+    return requestPromise;
   },
 
   /**
