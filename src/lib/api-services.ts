@@ -24,6 +24,10 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// ⚡ Bolt Optimization: Cache exchange rate promises to prevent duplicate inflight network requests
+// and serve subsequent requests instantly.
+const exchangeRatesCache = new Map<string, Promise<CurrencyImpact>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +59,32 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+    if (exchangeRatesCache.has(cacheKey)) {
+      return exchangeRatesCache.get(cacheKey)!;
     }
+
+    const promise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        return {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+      })
+      .catch((e) => {
+        exchangeRatesCache.delete(cacheKey); // Remove from cache so it can be retried
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    exchangeRatesCache.set(cacheKey, promise);
+    return promise;
   },
 
   /**
