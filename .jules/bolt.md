@@ -1,0 +1,3 @@
+## 2025-02-27 - Un-cached AI API Call Anti-pattern
+**Learning:** In React architectures using tab-based navigation, placing expensive AI API server actions directly inside tab components without module-level caching causes redundant network requests whenever a user switches tabs, leading to performance bottlenecks and potential rate-limits.
+**Action:** Always implement a module-level Promise cache with a Time-To-Live (TTL) for expensive API fetches inside tabbed components to ensure fast UI switching and minimize unnecessary backend load.
