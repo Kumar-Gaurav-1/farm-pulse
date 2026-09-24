@@ -18,16 +18,47 @@ import { Button } from '@/components/ui/button';
 import { contextualCropWeatherAdvisory, type ContextualCropWeatherAdvisoryOutput } from '@/ai/flows/contextual-crop-weather-advisory';
 import { Progress } from '@/components/ui/progress';
 
-export function AdvisoryDashboard() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [advisoryData, setAdvisoryData] = useState<ContextualCropWeatherAdvisoryOutput | null>(null);
+// Module-level cache for the expensive AI advisory call
+// Prevents redundant generations when component remounts (e.g. switching tabs)
+let cachedAdvisoryData: ContextualCropWeatherAdvisoryOutput | null = null;
+let activeFetchPromise: Promise<ContextualCropWeatherAdvisoryOutput> | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-  const fetchAdvisory = async () => {
+export function AdvisoryDashboard() {
+  // Initialize state from cache if it's valid, otherwise null
+  const [loading, setLoading] = useState(() => !cachedAdvisoryData || activeFetchPromise !== null);
+  const [error, setError] = useState<string | null>(null);
+  const [advisoryData, setAdvisoryData] = useState<ContextualCropWeatherAdvisoryOutput | null>(cachedAdvisoryData);
+
+  const fetchAdvisory = async (forceRefresh = false) => {
+    const now = Date.now();
+    const isCacheValid = cachedAdvisoryData && (now - cacheTimestamp < CACHE_TTL);
+
+    if (!forceRefresh && isCacheValid) {
+      setAdvisoryData(cachedAdvisoryData);
+      setLoading(false);
+      return;
+    }
+
+    if (activeFetchPromise) {
+      setLoading(true);
+      try {
+        const result = await activeFetchPromise;
+        setAdvisoryData(result);
+      } catch (err: any) {
+        setError(err.message || "Unable to synthesize environmental telemetry.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      const result = await contextualCropWeatherAdvisory({
+
+    // Create new fetch promise and cache it
+    activeFetchPromise = contextualCropWeatherAdvisory({
         location: "Central Valley, Kansas",
         cropType: "Corn (Yellow Dent)",
         growthStage: "Vegetative (V8)",
@@ -41,6 +72,11 @@ export function AdvisoryDashboard() {
         previous24hrRainfall: 2,
         diseaseHistory: ["Gray Leaf Spot", "Common Rust"],
       });
+
+    try {
+      const result = await activeFetchPromise;
+      cachedAdvisoryData = result;
+      cacheTimestamp = Date.now();
       setAdvisoryData(result);
     } catch (err: any) {
       console.error("Error fetching advisory:", err);
@@ -49,8 +85,12 @@ export function AdvisoryDashboard() {
       } else {
         setError("Unable to synthesize environmental telemetry. Please check your connection.");
       }
+      // On error, clear the active promise and cached data so subsequent calls can retry
+      activeFetchPromise = null;
+      cachedAdvisoryData = null;
     } finally {
       setLoading(false);
+      activeFetchPromise = null;
     }
   };
 
@@ -98,7 +138,7 @@ export function AdvisoryDashboard() {
                    <h3 className="text-2xl font-headline font-bold text-destructive">Strategic Standby</h3>
                    <p className="text-muted-foreground font-medium max-w-md mx-auto">{error}</p>
                  </div>
-                 <Button onClick={fetchAdvisory} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
+                 <Button onClick={() => fetchAdvisory(true)} variant="outline" className="apple-btn rounded-full px-12 h-14 font-black uppercase text-[11px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/5">
                    Retry Intelligence Feed
                  </Button>
               </div>
