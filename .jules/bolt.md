@@ -1,0 +1,3 @@
+## 2024-09-25 - Module-Level Promise Caching
+**Learning:** When implementing a module-level Promise cache where the active fetch promise and the resolved data are stored in separate variables or a Map, the active fetch promise entry must be removed upon successful completion or rejection. Failing to do so can cause components to unnecessarily trigger loading states or microtasks on subsequent remounts when the data is already cached.
+**Action:** Always delete or reset the active promise (e.g., `Map.delete(key)`) within the `.then()` block after successfully setting the cache, and within the `.catch()` block on rejection.
