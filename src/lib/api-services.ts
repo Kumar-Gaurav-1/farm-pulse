@@ -24,6 +24,15 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// ⚡ Bolt: TTL-based Promise Cache for Exchange Rates
+interface ExchangeRateCacheEntry {
+  data: CurrencyImpact;
+  expires: number;
+}
+const exchangeRatesCache = new Map<string, ExchangeRateCacheEntry>();
+const activeExchangeRateFetches = new Map<string, Promise<CurrencyImpact>>();
+const TTL = 5 * 60 * 1000; // 5 minutes
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +64,51 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const key = `${from}-${to}`;
+
+    // 1. Check resolved data cache
+    const cached = exchangeRatesCache.get(key);
+    if (cached && Date.now() < cached.expires) {
+      return Promise.resolve(cached.data);
     }
+
+    // 2. Check active fetches
+    const activeFetch = activeExchangeRateFetches.get(key);
+    if (activeFetch) {
+      return activeFetch;
+    }
+
+    // 3. Create new fetch promise
+    const fetchPromise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        exchangeRatesCache.set(key, {
+          data: result,
+          expires: Date.now() + TTL
+        });
+        activeExchangeRateFetches.delete(key);
+        return result;
+      })
+      .catch(e => {
+        activeExchangeRateFetches.delete(key);
+        // Fallback response on error
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    activeExchangeRateFetches.set(key, fetchPromise);
+    return fetchPromise;
   },
 
   /**
