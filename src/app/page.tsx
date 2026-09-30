@@ -57,6 +57,12 @@ export default function Dashboard() {
     setFormattedDate(new Date().toLocaleDateString('en-US', options));
   }, []);
 
+  const handleTabChange = React.useCallback((id: string) => {
+    setActiveTab(id);
+    setSelectedField(null);
+    setIsDiagnosing(null);
+  }, []);
+
   const handleAudioBriefing = async () => {
     if (isBriefing) return;
     setIsBriefing(true);
@@ -293,7 +299,7 @@ export default function Dashboard() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background font-body selection:bg-primary/10">
-        <SidebarNav activeTab={activeTab} onTabChange={(id) => { setActiveTab(id); setSelectedField(null); setIsDiagnosing(null); }} />
+        <SidebarNav activeTab={activeTab} onTabChange={handleTabChange} />
         <SidebarInset className="flex-1 flex flex-col bg-transparent overflow-x-hidden">
           <TopNav 
             currentLocation={currentLocation} 
