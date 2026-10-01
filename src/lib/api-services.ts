@@ -24,6 +24,16 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+// Module-level caches for exchange rates to prevent redundant network requests
+const exchangeRatesDataCache = new Map<string, CacheEntry<CurrencyImpact>>();
+const exchangeRatesPromiseCache = new Map<string, Promise<CurrencyImpact>>();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -54,20 +64,50 @@ export const ApiServices = {
 
   /**
    * Frankfurter API for currency exchange rates
+   * Optimized with module-level promise and data caching
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const key = `${from}-${to}`;
+    const now = Date.now();
+
+    // 1. Check data cache for valid, unexpired data
+    const cachedData = exchangeRatesDataCache.get(key);
+    if (cachedData && now - cachedData.timestamp < CACHE_TTL_MS) {
+      return Promise.resolve(cachedData.data);
     }
+
+    // 2. Check if a request is already in-flight
+    let activePromise = exchangeRatesPromiseCache.get(key);
+    if (activePromise) {
+      return activePromise;
+    }
+
+    // 3. Perform fetch and store promise
+    activePromise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        // Store in data cache and remove from promise cache
+        exchangeRatesDataCache.set(key, { data: result, timestamp: Date.now() });
+        exchangeRatesPromiseCache.delete(key);
+        return result;
+      })
+      .catch((e) => {
+        // Clear promise cache on failure to allow future retries
+        exchangeRatesPromiseCache.delete(key);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    exchangeRatesPromiseCache.set(key, activePromise);
+    return activePromise;
   },
 
   /**
