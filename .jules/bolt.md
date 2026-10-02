@@ -1,0 +1,3 @@
+## 2024-10-02 - Module-Level Promise Caching
+**Learning:** In a Next.js environment, redundant external API calls during component remounts or simultaneous renders can create significant performance bottlenecks. Using a standard `Map` for cache storage is effective, but handling active (in-flight) promises is critical to prevent thundering herds of microtasks.
+**Action:** When implementing caching for Promise-returning functions, strictly manage an `activeFetchPromises` map to deduplicate in-flight requests, and ensure that failed promises are removed from the active queue to allow future retries.
