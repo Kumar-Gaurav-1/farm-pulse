@@ -24,6 +24,15 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+const exchangeRateCache = new Map<string, CacheEntry<CurrencyImpact>>();
+const activeRequests = new Map<string, Promise<CurrencyImpact>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -54,20 +63,47 @@ export const ApiServices = {
 
   /**
    * Frankfurter API for currency exchange rates
+   * Optimized: Caches results for 5 minutes and deduplicates active requests
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const key = `${from}-${to}`;
+
+    // 1. Check valid cache
+    const cached = exchangeRateCache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return Promise.resolve(cached.data);
     }
+
+    // 2. Deduplicate active requests
+    if (activeRequests.has(key)) {
+      return activeRequests.get(key)!;
+    }
+
+    // 3. Fetch, cache, and resolve
+    const fetchPromise = (async () => {
+      try {
+        const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        exchangeRateCache.set(key, { data: result, timestamp: Date.now() });
+        return result;
+      } catch (e) {
+        // Clear cache if request failed and there is no cached data
+        exchangeRateCache.delete(key);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      } finally {
+        activeRequests.delete(key);
+      }
+    })();
+
+    activeRequests.set(key, fetchPromise);
+    return fetchPromise;
   },
 
   /**
