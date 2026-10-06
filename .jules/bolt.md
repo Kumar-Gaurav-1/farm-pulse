@@ -1,0 +1,3 @@
+## 2024-05-18 - [API Request Deduplication and Caching]
+**Learning:** We observed multiple components or renders triggering redundant network requests for slowly changing external data (like exchange rates), causing performance bottlenecks and potential rate-limiting. A regular cache isn't enough when multiple components trigger the request concurrently before the first response resolves.
+**Action:** When implementing caching for API endpoints, always include deduplication of in-flight promises alongside a TTL-based cache. Store the active fetch Promise in a `Map` and delete it from the `Map` in a `finally` block to prevent multiple network calls during simultaneous component remounts.
