@@ -1,0 +1,3 @@
+## 2024-10-08 - Module-Level Promise Caching for Simultaneous Requests
+**Learning:** The app's dashboard components frequently remount or trigger simultaneous data fetching for shared resources like exchange rates, creating duplicate network requests before the first completes. Wrapping a cached Promise with an `async` function also introduces unnecessary V8 microtask overhead.
+**Action:** When implementing module-level caches, always store the active fetch Promise in a Map (in addition to the resolved data) to deduplicate simultaneous requests, and remove the `async` keyword from the outer signature to return the Promise directly.
