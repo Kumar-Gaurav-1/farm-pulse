@@ -24,6 +24,8 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+const exchangeRateCache = new Map<string, { promise: Promise<CurrencyImpact>, timestamp: number }>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +57,41 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+    const now = Date.now();
+    const TTL = 5 * 60 * 1000; // 5 minutes
+
+    const cached = exchangeRateCache.get(cacheKey);
+
+    if (cached) {
+      if (now - cached.timestamp < TTL) {
+        return cached.promise;
+      }
+      // Evict stale cache
+      exchangeRateCache.delete(cacheKey);
     }
+
+    const promise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        return {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+      })
+      .catch((e) => {
+        exchangeRateCache.delete(cacheKey);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    exchangeRateCache.set(cacheKey, { promise, timestamp: now });
+    return promise;
   },
 
   /**
