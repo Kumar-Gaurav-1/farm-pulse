@@ -24,6 +24,11 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// Module-level caches for exchange rates
+const exchangeRateCache = new Map<string, { data: CurrencyImpact; timestamp: number }>();
+const activeExchangeRatePromises = new Map<string, Promise<CurrencyImpact>>();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -54,20 +59,50 @@ export const ApiServices = {
 
   /**
    * Frankfurter API for currency exchange rates
+   * Optimized: Uses Promise caching for concurrent calls and TTL caching for resolved data
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+    const now = Date.now();
+
+    // 1. Check resolved cache (TTL)
+    const cached = exchangeRateCache.get(cacheKey);
+    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+      return Promise.resolve(cached.data);
     }
+
+    // 2. Check active in-flight promises
+    if (activeExchangeRatePromises.has(cacheKey)) {
+      return activeExchangeRatePromises.get(cacheKey)!;
+    }
+
+    // 3. Create new fetch promise
+    const fetchPromise = (async () => {
+      try {
+        const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        exchangeRateCache.set(cacheKey, { data: result, timestamp: Date.now() });
+        return result;
+      } catch (e) {
+        // Clear cache on error so we can retry later
+        exchangeRateCache.delete(cacheKey);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      } finally {
+        activeExchangeRatePromises.delete(cacheKey);
+      }
+    })();
+
+    activeExchangeRatePromises.set(cacheKey, fetchPromise);
+    return fetchPromise;
   },
 
   /**
