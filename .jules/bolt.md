@@ -1,0 +1,3 @@
+## 2024-03-24 - Module-Level Promise Caching
+**Learning:** In React applications with multiple components fetching the same API endpoint simultaneously (e.g., currency exchange rates used across different dashboards or components), a module-level Promise cache is an effective way to prevent redundant network requests and reduce load times, even before React Query or similar libraries are introduced.
+**Action:** When implementing utility modules that make external API calls, introduce a module-level `Map` to cache active Promises and resolved data (with a TTL). Ensure to remove the active Promise from the map once it resolves or rejects to prevent hanging states and allow retries on failures.
