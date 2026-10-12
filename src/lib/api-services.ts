@@ -24,6 +24,10 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// Cache for exchange rates
+const exchangeRatesCache = new Map<string, { promise: Promise<CurrencyImpact>, timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -54,20 +58,38 @@ export const ApiServices = {
 
   /**
    * Frankfurter API for currency exchange rates
+   * Optimized: Implemented a 5-minute Promise cache to prevent redundant API calls
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+    const now = Date.now();
+    const cached = exchangeRatesCache.get(cacheKey);
+
+    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+      return cached.promise;
     }
+
+    const fetchPromise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async res => {
+        if (!res.ok) {
+           throw new Error('Network response was not ok');
+        }
+        const data = await res.json();
+        return {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+      })
+      .catch(e => {
+        // Delete cache on failure so it can retry
+        exchangeRatesCache.delete(cacheKey);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    exchangeRatesCache.set(cacheKey, { promise: fetchPromise, timestamp: now });
+    return fetchPromise;
   },
 
   /**
