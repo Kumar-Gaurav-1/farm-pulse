@@ -24,6 +24,16 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+const CACHE_TTL = 60 * 1000; // 1 minute TTL
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const exchangeRateCache = new Map<string, CacheEntry<CurrencyImpact>>();
+const exchangeRatePromises = new Map<string, Promise<CurrencyImpact>>();
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +65,48 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+
+    // Check TTL cache
+    const cachedEntry = exchangeRateCache.get(cacheKey);
+    if (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_TTL) {
+      return Promise.resolve(cachedEntry.data);
     }
+
+    // Check if there's already an active promise
+    if (exchangeRatePromises.has(cacheKey)) {
+      return exchangeRatePromises.get(cacheKey)!;
+    }
+
+    // Create a new promise for the fetch
+    const fetchPromise = (async () => {
+      try {
+        const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        const result: CurrencyImpact = {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+        // Update cache on success
+        exchangeRateCache.set(cacheKey, { data: result, timestamp: Date.now() });
+        return result;
+      } catch (e) {
+        // Fallback on error
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      } finally {
+        // Clean up the active promise in either case
+        exchangeRatePromises.delete(cacheKey);
+      }
+    })();
+
+    exchangeRatePromises.set(cacheKey, fetchPromise);
+    return fetchPromise;
   },
 
   /**
