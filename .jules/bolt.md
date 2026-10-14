@@ -1,0 +1,3 @@
+## 2024-10-14 - Redundant AI Calls on Tab Switch
+**Learning:** In Next.js/React applications with tab-based navigation, components are often unmounted and remounted on tab switches. If expensive operations like AI synthesis or multiple API calls are triggered inside `useEffect` without an external cache, they will needlessly rerun on every tab change, wasting API quotas and creating unnecessary loading states.
+**Action:** Implement module-level caches (or external state management) for expensive data fetching operations tied to component mounts, ensuring we only re-fetch when explicitly requested or when data is stale. Also ensure `activeFetchPromise` is handled and cleared correctly to avoid lingering loading states.
