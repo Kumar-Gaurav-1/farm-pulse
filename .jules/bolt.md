@@ -1,0 +1,3 @@
+## 2024-10-15 - Module-Level Promise Caching for Duplicate API Requests
+**Learning:** In React apps where multiple components or features might independently request the same data on mount (e.g., currency rates, shared state), failing to deduplicate inflight promises results in multiple identical parallel network requests. Using a module-level `Map` to cache the `Promise` of the fetch operation allows all callers to `await` the single inflight request rather than spawning new ones.
+**Action:** When creating central API service utilities, cache the returned `Promise` rather than just the resolved data. Ensure the cache removes the promise on error (`.catch`) so transient failures don't permanently break future requests.
