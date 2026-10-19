@@ -24,6 +24,11 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// Module-level cache for exchange rates to deduplicate concurrent fetches and cache successful responses
+// This prevents multiple components requesting the same exchange rate from triggering redundant network calls.
+const exchangeRateCache = new Map<string, { promise: Promise<CurrencyImpact>, timestamp: number }>();
+const EXCHANGE_RATE_TTL_MS = 60 * 1000; // 1 minute TTL for time-sensitive currency data
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +60,39 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+    const cached = exchangeRateCache.get(cacheKey);
+
+    // Return cached promise if it exists and hasn't expired
+    if (cached && Date.now() - cached.timestamp < EXCHANGE_RATE_TTL_MS) {
+      return cached.promise;
     }
+
+    // Create a new fetch promise and cache it immediately
+    const fetchPromise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        return {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+      })
+      .catch((e) => {
+        // Clear the cache on failure so subsequent requests can try again
+        exchangeRateCache.delete(cacheKey);
+        console.error("Error fetching exchange rates:", e);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    exchangeRateCache.set(cacheKey, { promise: fetchPromise, timestamp: Date.now() });
+
+    return fetchPromise;
   },
 
   /**
