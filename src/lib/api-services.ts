@@ -24,6 +24,15 @@ export interface CurrencyImpact {
   trend: 'up' | 'down' | 'stable';
 }
 
+// Optimization: Module-level cache for exchange rates to prevent redundant API calls
+// Includes timestamp for 5-minute TTL eviction
+interface ExchangeRateCacheEntry {
+  promise: Promise<CurrencyImpact>;
+  timestamp: number;
+}
+const exchangeRateCache = new Map<string, ExchangeRateCacheEntry>();
+const EXCHANGE_RATE_TTL_MS = 5 * 60 * 1000;
+
 export const ApiServices = {
   /**
    * Mock integration for OpenWeatherMap Agro API (NDVI)
@@ -55,19 +64,42 @@ export const ApiServices = {
   /**
    * Frankfurter API for currency exchange rates
    */
-  async getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
-    try {
-      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-      const data = await res.json();
-      return {
-        rate: data.rates[to],
-        base: from,
-        target: to,
-        trend: 'up'
-      };
-    } catch (e) {
-      return { rate: 0.92, base: from, target: to, trend: 'stable' };
+  getExchangeRates(from: string = 'USD', to: string = 'EUR'): Promise<CurrencyImpact> {
+    const cacheKey = `${from}-${to}`;
+    const now = Date.now();
+    const cachedEntry = exchangeRateCache.get(cacheKey);
+
+    // Return cached promise if it exists and hasn't expired
+    if (cachedEntry && (now - cachedEntry.timestamp < EXCHANGE_RATE_TTL_MS)) {
+      return cachedEntry.promise;
     }
+
+    // Optimization: Create the promise and cache it immediately so concurrent calls await the same request
+    const fetchPromise = fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        return {
+          rate: data.rates[to],
+          base: from,
+          target: to,
+          trend: 'up' as const
+        };
+      })
+      .catch((e) => {
+        // Optimization: Clean up the cache on failure to allow future retries to succeed
+        exchangeRateCache.delete(cacheKey);
+        return { rate: 0.92, base: from, target: to, trend: 'stable' as const };
+      });
+
+    exchangeRateCache.set(cacheKey, {
+      promise: fetchPromise,
+      timestamp: now
+    });
+
+    return fetchPromise;
   },
 
   /**
