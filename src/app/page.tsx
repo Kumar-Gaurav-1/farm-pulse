@@ -5,16 +5,27 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import { TopNav } from '@/components/dashboard/TopNav';
 import { AdvisoryDashboard } from '@/components/features/AdvisoryDashboard';
-import { MarketDashboard } from '@/components/features/MarketDashboard';
-import { FieldHealth } from '@/components/features/FieldHealth';
-import { FieldIntelligence } from '@/components/features/FieldIntelligence';
-import { SustainabilityDashboard } from '@/components/features/SustainabilityDashboard';
-import { WeatherIntelligence } from '@/components/features/WeatherIntelligence';
-import { IrrigationHub } from '@/components/features/IrrigationHub';
-import { FarmIdentity } from '@/components/features/FarmIdentity';
-import { AnomalyDiagnosis } from '@/components/features/AnomalyDiagnosis';
-import { AlertCenter } from '@/components/features/AlertCenter';
 import { PROPERTIES, type PropertyContext } from '@/lib/locations';
+import dynamic from 'next/dynamic';
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-[500px] text-center">
+    <div className="space-y-4">
+      <div className="w-16 h-16 text-muted-foreground/20 mx-auto animate-pulse bg-muted rounded-full" />
+      <p className="text-muted-foreground font-black tracking-widest text-sm uppercase italic">Loading module...</p>
+    </div>
+  </div>
+);
+
+const MarketDashboard = dynamic(() => import('@/components/features/MarketDashboard').then(mod => mod.MarketDashboard), { loading: LoadingFallback });
+const FieldHealth = dynamic(() => import('@/components/features/FieldHealth').then(mod => mod.FieldHealth), { loading: LoadingFallback });
+const FieldIntelligence = dynamic(() => import('@/components/features/FieldIntelligence').then(mod => mod.FieldIntelligence), { loading: LoadingFallback });
+const SustainabilityDashboard = dynamic(() => import('@/components/features/SustainabilityDashboard').then(mod => mod.SustainabilityDashboard), { loading: LoadingFallback });
+const WeatherIntelligence = dynamic(() => import('@/components/features/WeatherIntelligence').then(mod => mod.WeatherIntelligence), { loading: LoadingFallback });
+const IrrigationHub = dynamic(() => import('@/components/features/IrrigationHub').then(mod => mod.IrrigationHub), { loading: LoadingFallback });
+const FarmIdentity = dynamic(() => import('@/components/features/FarmIdentity').then(mod => mod.FarmIdentity), { loading: LoadingFallback });
+const AnomalyDiagnosis = dynamic(() => import('@/components/features/AnomalyDiagnosis').then(mod => mod.AnomalyDiagnosis), { loading: LoadingFallback });
+const AlertCenter = dynamic(() => import('@/components/features/AlertCenter').then(mod => mod.AlertCenter), { loading: LoadingFallback });
 import { 
   Sprout, 
   TrendingUp, 
