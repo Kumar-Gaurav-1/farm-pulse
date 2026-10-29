@@ -5,15 +5,18 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/SidebarNav';
 import { TopNav } from '@/components/dashboard/TopNav';
 import { AdvisoryDashboard } from '@/components/features/AdvisoryDashboard';
-import { MarketDashboard } from '@/components/features/MarketDashboard';
-import { FieldHealth } from '@/components/features/FieldHealth';
-import { FieldIntelligence } from '@/components/features/FieldIntelligence';
-import { SustainabilityDashboard } from '@/components/features/SustainabilityDashboard';
-import { WeatherIntelligence } from '@/components/features/WeatherIntelligence';
-import { IrrigationHub } from '@/components/features/IrrigationHub';
-import { FarmIdentity } from '@/components/features/FarmIdentity';
-import { AnomalyDiagnosis } from '@/components/features/AnomalyDiagnosis';
-import { AlertCenter } from '@/components/features/AlertCenter';
+
+// Dynamically import hidden tab components to reduce initial First Load JS size
+import dynamic from 'next/dynamic';
+const MarketDashboard = dynamic(() => import('@/components/features/MarketDashboard').then(mod => mod.MarketDashboard));
+const FieldHealth = dynamic(() => import('@/components/features/FieldHealth').then(mod => mod.FieldHealth));
+const FieldIntelligence = dynamic(() => import('@/components/features/FieldIntelligence').then(mod => mod.FieldIntelligence));
+const SustainabilityDashboard = dynamic(() => import('@/components/features/SustainabilityDashboard').then(mod => mod.SustainabilityDashboard));
+const WeatherIntelligence = dynamic(() => import('@/components/features/WeatherIntelligence').then(mod => mod.WeatherIntelligence));
+const IrrigationHub = dynamic(() => import('@/components/features/IrrigationHub').then(mod => mod.IrrigationHub));
+const FarmIdentity = dynamic(() => import('@/components/features/FarmIdentity').then(mod => mod.FarmIdentity));
+const AnomalyDiagnosis = dynamic(() => import('@/components/features/AnomalyDiagnosis').then(mod => mod.AnomalyDiagnosis));
+const AlertCenter = dynamic(() => import('@/components/features/AlertCenter').then(mod => mod.AlertCenter));
 import { PROPERTIES, type PropertyContext } from '@/lib/locations';
 import { 
   Sprout, 
