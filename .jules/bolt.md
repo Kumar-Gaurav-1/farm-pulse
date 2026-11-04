@@ -1,0 +1,3 @@
+## 2025-02-28 - Missing Code Splitting for Hidden Dashboard Tabs
+**Learning:** In this Next.js application, all dashboard features (`AdvisoryDashboard`, `MarketDashboard`, `FieldHealth`, `WeatherIntelligence`, `IrrigationHub`, etc.) are statically imported in `src/app/page.tsx`, even though only the 'overview' tab is shown by default. This unnecessarily bloats the initial 'First Load JS' bundle size.
+**Action:** Use `next/dynamic` to lazily load conditionally rendered UI components that are not visible on the initial load to improve frontend performance. The default visible component can remain statically imported to prevent loading flashes.
