@@ -1,0 +1,3 @@
+## 2025-02-20 - Dynamic Imports for Conditionally Rendered Next.js Components
+**Learning:** In this Next.js application, statically importing conditionally rendered UI components (like hidden dashboard tabs) significantly inflates the initial 'First Load JS' bundle size. The default visible components should remain statically imported to prevent loading flashes, while the hidden components can be code-split.
+**Action:** Use `next/dynamic` to lazy-load conditionally rendered components. Explicitly use the `.then()` syntax for named exports (e.g., `import('...').then(mod => mod.Component)`) when dynamically importing them.
