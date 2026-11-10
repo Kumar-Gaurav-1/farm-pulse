@@ -1,0 +1,3 @@
+## 2025-02-23 - Optimize Next.js bundle size with dynamic imports
+**Learning:** In Next.js applications, components conditionally rendered (like hidden tabs) contribute to the 'First Load JS' bundle size if statically imported. By dynamically importing them using `next/dynamic`, the initial bundle size is significantly reduced as they are fetched only on demand. The default visible components should remain statically imported to prevent loading flashes.
+**Action:** When adding new conditional views or tabs in Next.js, always use `next/dynamic` for those not visible on the initial render to keep the first load bundle small.
